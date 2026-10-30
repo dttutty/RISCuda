@@ -4,6 +4,10 @@
 
 每项记录保留原实验的环境、提交、计时边界和限制；不同记录不代表同一次运行。
 
+## 每个请求一次 CUDA Graph 的公开算术评测
+
+[完整记录与证据](docs/results/autonomous-public-200.zh-CN.md)
+
 ## 自主 Qwen 与原生 C 计算器
 
 [完整记录与证据](docs/results/autonomous-calc.zh-CN.md)

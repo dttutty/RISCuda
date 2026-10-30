@@ -4,6 +4,10 @@
 
 ## Single-graph variant
 
+The completed 200-question run scored **195/200 in both arms**, with **41.48%**
+lower latency on the 192 common correctly completed pairs. Every native
+request used one host graph launch. See the [full results and limitations](../docs/results/autonomous-public-200.md).
+
 `autonomous_qwenputer.py` reruns the same five sets with the shared BF16
 checkpoint, original prompts, disabled thinking and token budgets. Its native
 arm captures stock prefill and uses the GPU conditional controller through the

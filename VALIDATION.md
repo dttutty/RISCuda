@@ -4,6 +4,10 @@
 
 Each record retains its own environment, commit, timing boundaries and limitations. Records describe separate experiments.
 
+## Public arithmetic with one CUDA Graph per request
+
+[Full record and evidence](docs/results/autonomous-public-200.md)
+
 ## Autonomous Qwen and native C calculator
 
 [Full record and evidence](docs/results/autonomous-calc.md)
