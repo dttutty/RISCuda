@@ -2,6 +2,41 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+## Single-graph variant
+
+`autonomous_qwenputer.py` reruns the same five sets with the shared BF16
+checkpoint, original prompts, disabled thinking and token budgets. Its native
+arm captures stock prefill and uses the GPU conditional controller through the
+final answer; the paired baseline uses the original Qwenputer host/Triton driver.
+Problems of identical prompt length share captured input storage without
+padding. A warmup gate checks that changing that storage changes the actual
+tool computation. No expected answer enters the model or guest.
+Prefill returns prompt-length KV views over static backing storage and must
+match original prefill logits bit for bit for every captured length group.
+
+```bash
+CUDA_VISIBLE_DEVICES=0 GPU_RV32_CACHE="$PWD/.cache" \
+  uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
+  python benchmarks/autonomous_qwenputer.py --shard 0/2 \
+    --output runs/autonomous_public/shard0
+# Run shard 1/2 on a separately checked idle GPU, then audit both:
+uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
+  python benchmarks/audit_autonomous_public.py runs/autonomous_public
+```
+
+Setup, capture, cache reset and final trace download are outside request timing;
+the measured graph includes real prefill, generation, calculation and feedback.
+Static attention/cache numerics can change greedy continuations relative to the
+baseline. All wrong answers and cutoffs are retained, and the audit reports
+text differences and an identical-text subset in addition to common correctly
+completed requests. Overall speed includes captured inference and the native
+execution engine; it cannot be attributed solely to removing CPU dispatch.
+For separate Nsight measurement, use one `--ids` value, `--arms riscuda --profile`
+with graph-level tracing and event tracing disabled, as in the
+[controller instructions](../docs/autonomous-calc.md).
+
+## Earlier host-loop evaluation
+
 The completed 200-problem local run scored **195/200 for each arm**. RISCuda
 reduced end-to-end latency by **15.92%** on the 194 common correctly completed
 requests (problem-bootstrap 95% interval 14.15%–17.68%). Including failed and

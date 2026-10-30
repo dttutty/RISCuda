@@ -2,6 +2,35 @@
 
 [English](README.md) | **简体中文**
 
+## 单次执行图版本
+
+`autonomous_qwenputer.py` 使用共享 BF16 检查点、原版提示词、关闭 thinking 和相同 token
+预算，重跑同样的五组题。原生组捕获原版预填充，并通过 GPU 条件控制器一直执行到最终答案；
+配对基线使用原版 Qwenputer 的主机和 Triton 驱动。
+提示词长度相同的题目共享已捕获的输入存储，不添加填充。
+预热检查确认替换该存储会改变实际工具计算。预期答案不会进入模型或客户机。
+预填充在静态底层存储上返回与提示词等长的 KV 视图；每个捕获长度组的预填充 logits
+都必须与原版逐位一致。
+
+```bash
+CUDA_VISIBLE_DEVICES=0 GPU_RV32_CACHE="$PWD/.cache" \
+  uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
+  python benchmarks/autonomous_qwenputer.py --shard 0/2 \
+    --output runs/autonomous_public/shard0
+# Run shard 1/2 on a separately checked idle GPU, then audit both:
+uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
+  python benchmarks/audit_autonomous_public.py runs/autonomous_public
+```
+
+初始化、捕获、缓存重置和最终轨迹下载不计入请求耗时；所测执行图包含真实预填充、
+生成、计算和反馈。静态注意力及缓存的数值差异可能使 greedy 续写与基线不同。
+全部错误答案和截断均保留；除双方正确完成的请求外，审计还报告文字差异和文字完全一致的子集。
+整体速度包含捕获推理和原生执行引擎的影响，不能仅归因于取消 CPU 调度。
+单独进行 Nsight 测量时，指定一个 `--ids` 值和 `--arms riscuda --profile`，
+使用整图级跟踪并关闭事件跟踪，具体设置见[控制器说明](../docs/autonomous-calc.zh-CN.md)。
+
+## 此前的主机循环评测
+
 已完成的本地 200 题实验中，**两组均答对 195/200**。在双方都正确完成的
 194 个请求上，RISCuda 端到端耗时降低 **15.92%**（按题目进行 bootstrap
 得到的 95% 区间为 14.15%–17.68%）。计入失败和截断请求后，累计耗时降低 14.73%。
