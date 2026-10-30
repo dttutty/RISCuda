@@ -1,6 +1,6 @@
 # RISCuda
 
-### RISC-V 核心搬进 CUDA。完整 Python 程序，一个 kernel 执行。
+[![RISCuda：Qwen 生成 Python，由 GPU 内的 RISC-V 解释执行，再将结果返回 Qwen。](docs/media/riscuda-hero.gif)](docs/media/riscuda-hero.png)
 
 [English](README.md) | **简体中文**
 

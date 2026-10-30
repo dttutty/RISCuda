@@ -1,6 +1,6 @@
 # RISCuda
 
-### A RISC-V core inside CUDA. A whole Python program in one kernel.
+[![RISCuda: Qwen generates Python, a RISC-V interpreter executes it on the GPU, and the result returns to Qwen.](docs/media/riscuda-hero.gif)](docs/media/riscuda-hero.png)
 
 **English** | [简体中文](README.zh-CN.md)
 
