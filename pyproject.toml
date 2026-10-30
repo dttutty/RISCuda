@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "gpu-rv32-python"
 version = "0.1.0"
-description = "RISC-V on CUDA: run whole integer Python programs in one GPU kernel"
+description = "RISCuda: run whole integer Python programs on a CUDA RISC-V core"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = ["ziglang==0.14.1"]
 
 [project.urls]
-Repository = "https://github.com/dttutty/RISCV_ON_CUDA"
-Issues = "https://github.com/dttutty/RISCV_ON_CUDA/issues"
+Repository = "https://github.com/dttutty/RISCuda"
+Issues = "https://github.com/dttutty/RISCuda/issues"
 
 [project.scripts]
 gpu-rv32 = "gpu_rv32.cli:main"

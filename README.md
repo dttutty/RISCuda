@@ -1,10 +1,10 @@
-# RISCV_ON_CUDA
+# RISCuda
 
 ### A RISC-V core inside CUDA. A whole Python program in one kernel.
 
 **English** | [简体中文](README.zh-CN.md)
 
-[![CPU tests](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml/badge.svg)](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml)
+[![CPU tests](https://github.com/dttutty/RISCuda/actions/workflows/test.yml/badge.svg)](https://github.com/dttutty/RISCuda/actions/workflows/test.yml)
 
 **Give your NVIDIA GPU its own RISC-V execution core.** Run real RV32IM machine
 code and complete integer Python programs on the GPU: parsing, branches,
@@ -28,8 +28,8 @@ Standalone core requires no PyTorch or model weights**
 ## Quick start
 
 ```bash
-git clone https://github.com/dttutty/RISCV_ON_CUDA.git
-cd RISCV_ON_CUDA
+git clone https://github.com/dttutty/RISCuda.git
+cd RISCuda
 uv sync --locked
 uv run gpu-rv32 python examples/sum.py --compile-only
 # Select a checked idle NVIDIA GPU before execution:
@@ -212,15 +212,15 @@ See [VALIDATION.md](VALIDATION.md) for the recorded standalone validation and
 
 ## Citation
 
-If you use RISCV_ON_CUDA in your work, please cite:
+If you use RISCuda in your work, please cite:
 
 ```bibtex
-@software{zhao2026riscv_on_cuda,
+@software{zhao2026riscuda,
   author  = {Zhao, Lei and Lee, Chul-Ho},
-  title   = {{RISCV_ON_CUDA}: a {RISC-V} core and {Python} interpreter on {CUDA}},
+  title   = {{RISCuda}: a {RISC-V} core and {Python} interpreter on {CUDA}},
   year    = {2026},
   version = {0.1.0},
-  url     = {https://github.com/dttutty/RISCV_ON_CUDA}
+  url     = {https://github.com/dttutty/RISCuda}
 }
 ```
 

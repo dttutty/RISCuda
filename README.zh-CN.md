@@ -1,10 +1,10 @@
-# RISCV_ON_CUDA
+# RISCuda
 
 ### RISC-V 核心搬进 CUDA。完整 Python 程序，一个 kernel 执行。
 
 [English](README.md) | **简体中文**
 
-[![CPU 测试](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml/badge.svg)](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml)
+[![CPU 测试](https://github.com/dttutty/RISCuda/actions/workflows/test.yml/badge.svg)](https://github.com/dttutty/RISCuda/actions/workflows/test.yml)
 
 **给 NVIDIA GPU 一个自己的 RISC-V 执行核心。** 在 GPU 上执行真实的
 RV32IM 机器码和完整的整数 Python 程序：解析、分支、循环、内存访问和
@@ -27,8 +27,8 @@ RV32IM 机器码和完整的整数 Python 程序：解析、分支、循环、�
 ## 快速开始
 
 ```bash
-git clone https://github.com/dttutty/RISCV_ON_CUDA.git
-cd RISCV_ON_CUDA
+git clone https://github.com/dttutty/RISCuda.git
+cd RISCuda
 uv sync --locked
 uv run gpu-rv32 python examples/sum.py --compile-only
 # 执行前，请选择已经确认空闲且健康的 NVIDIA GPU：
@@ -204,15 +204,15 @@ CPU/GPU 汇编器一致性、Python 控制流/错误/容量限制，以及原生
 
 ## 引用
 
-如果你在工作中使用了 RISCV_ON_CUDA，请引用：
+如果你在工作中使用了 RISCuda，请引用：
 
 ```bibtex
-@software{zhao2026riscv_on_cuda,
+@software{zhao2026riscuda,
   author  = {Zhao, Lei and Lee, Chul-Ho},
-  title   = {{RISCV_ON_CUDA}: a {RISC-V} core and {Python} interpreter on {CUDA}},
+  title   = {{RISCuda}: a {RISC-V} core and {Python} interpreter on {CUDA}},
   year    = {2026},
   version = {0.1.0},
-  url     = {https://github.com/dttutty/RISCV_ON_CUDA}
+  url     = {https://github.com/dttutty/RISCuda}
 }
 ```
 
