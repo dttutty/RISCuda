@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gpu-rv32-python"
+version = "0.1.0"
+description = "A CUDA RV32IM software VM and freestanding integer Python interpreter"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["ziglang==0.14.1"]
+
+[project.scripts]
+gpu-rv32 = "gpu_rv32.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gpu_rv32"]
