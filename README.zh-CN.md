@@ -1,10 +1,5 @@
 # RISCuda
 
-Qwen → 原生 C 计算器 → Qwen 现在也支持 **GPU 自主循环**：CPU 启动一次 CUDA
-Graph 后，调用检测、参数收集、RISC-V 执行、结果 token 回填和后续生成均由
-GPU 推进。CPU 仍负责初始化、提交请求和最终取回结果。
-详见[实现与复现说明](docs/autonomous-calc.md)。
-
 ### RISC-V 核心搬进 CUDA。完整 Python 程序，一个 kernel 执行。
 
 [English](README.md) | **简体中文**
@@ -20,6 +15,7 @@ RV32IM 机器码和完整的整数 Python 程序：解析、分支、循环、�
 | --- | --- | --- |
 | 一段完整的 RISC-V 或整数 Python 程序 | **一次 CUDA kernel 调用** | 当前独立库 |
 | 包含暂停/恢复的自定义工具服务 | **一个 CUDA kernel**，包含两次服务调用 | [设备端示例](examples/native_resume.cu) |
+| Qwen → 原生 C 计算器 → Qwen | **一次主机 CUDA Graph 启动**，包含预填充 | [GPU 控制器](docs/autonomous-calc.md) |
 | Qwen 推理 → Python 执行 → Qwen 继续推理 | **一次主机 CUDA Graph 启动** | [配套推理原型](VALIDATION.md#llm-integration-one-host-graph-launch) |
 
 推理集成的执行图内部包含多个 GPU kernel。一次主机启动覆盖提示词预填充、
@@ -36,7 +32,7 @@ git clone https://github.com/dttutty/RISCuda.git
 cd RISCuda
 uv sync --locked
 uv run gpu-rv32 python examples/sum.py --compile-only
-# 执行前，请选择已经确认空闲且健康的 NVIDIA GPU：
+# 执行前，请选择已经确认空闲的 NVIDIA GPU：
 CUDA_VISIBLE_DEVICES=0 uv run gpu-rv32 asm examples/multiply.S
 CUDA_VISIBLE_DEVICES=0 uv run gpu-rv32 python examples/sum.py
 CUDA_VISIBLE_DEVICES=0 uv run gpu-rv32 c examples/bigint.c
@@ -55,7 +51,7 @@ print(run_program(image)["stdout"])
 以及 NVIDIA Ampere 或更新架构的 GPU。
 默认编译目标为 `sm_80`，可通过 `GPU_RV32_CUDA_ARCH` 修改。
 原生编译产物存放在用户缓存目录，可通过 `GPU_RV32_CACHE` 指定位置。
-安装包包含全部 CUDA 头文件，以及客户机解释器的 C、汇编和链接脚本源码。
+安装包包含全部 CUDA 头文件，以及客户机程序的 C、汇编和链接脚本源码。
 独立运行时使用 Python 标准库、锁定版本的 Zig 工具链和 CUDA。
 
 ## CPU 和 GPU 各自执行什么
@@ -128,51 +124,54 @@ MUL/MULH/MULHSU/MULHU/DIV/DIVU/REM/REMU。
 两种汇编器最多生成 1024 条机器指令。GPU 汇编器还限制源码不超过
 8191 字节、标签不超过 64 个。目前不支持汇编器指示符或重定位。
 
-## C、MicroPython 和大整数服务
+## C、MicroPython 和原生大整数
 
 ```python
 from gpu_rv32 import compile_c, run_c, compile_micropython, run_micropython
 
 c = compile_c('#include <stdio.h>\nint main(void) { printf("%d\\n", 2*8); return 0; }')
 assert run_c(c)["stdout"] == "16\n"
-answer = run_micropython(compile_micropython("print(2**256)\n"))
+image = compile_micropython("print(2**256)\n")
+answer = run_micropython(image)
 assert answer["status"] == answer["error"] == 0
 print(answer["stdout"], answer["bigint_calls"])
 ```
 
-`c` 接受以 `int main(void)` 为入口的 freestanding C，由 CPU 上的 Zig
-预先编译成 RV32IM，随后整个程序在 GPU 中执行。返回值放在 `value`。
-提供内存复制、`puts`、`putchar`、`guest_write` 和整数 `printf`，支持
-`%d/%i/%u/%x/%X/%s/%c/%%`、`l/ll/z` 长度、字段宽度和补零。
-没有完整 libc、操作系统、malloc、Linux 系统调用或主机文件系统访问。
+`c` 在 GPU 执行前，使用 CPU 上的 Zig 编译 freestanding C。
+入口为 `int main(void)`，返回值放在 `value`。
+随包提供的辅助函数支持内存复制、`puts`、`putchar`、`guest_write` 和整数 `printf`
+（`%d/%i/%u/%x/%X/%s/%c/%%`、可选的 `l/ll/z` 长度修饰符、字段宽度和补零）。
+没有通用 libc、操作系统、malloc、Linux 系统调用或主机文件系统 API。
 
-`micropython` 执行的是真正的 **MicroPython v1.27.0**。它的源码解析器、
-字节码编译器、虚拟机、内存分配器和垃圾回收器都作为 RISC-V 程序在 GPU
-kernel 内运行，支持函数、类、`for/range`、列表、字典、字符串、生成器、
-异常和任意精度整数。当前移植版关闭浮点、原生代码生成、外部文件导入、
-网络和文件 I/O；它不是 CPython，也不是完整的桌面 Python 环境。
-固定版本的 MIT 上游源码已随包附带，无需运行时下载。构建额外需要 GNU make。
-来源与改动见 [MicroPython 记录](src/gpu_rv32/vendor/micropython/PROVENANCE.md)。
+`micropython` 执行编译为 RV32IM 的 **真正的 MicroPython v1.27.0**，
+其解析器、字节码编译器、虚拟机、内存分配器和垃圾回收器都在 GPU kernel
+内运行。支持函数、类、`for/range`、列表、字典、字符串、生成器、异常和任意精度整数。
+当前整数移植版关闭浮点、原生代码生成、外部文件导入、网络和文件 I/O；
+它不是 CPython，也不是完整的桌面 Python 环境。
+固定版本、采用 MIT 许可证的上游源码已随包附带，详见
+[MicroPython 来源记录](src/gpu_rv32/vendor/micropython/PROVENANCE.md)。
+构建除 Zig 外还需要 GNU make，无需在运行时下载源码。
 
-MicroPython 会自动把每个输入不超过 **4096 位**的大整数乘法交给 CUDA
-实现的软件协处理器，乘积最多 8192 位。更大的乘法回退到 MicroPython
-原有的任意精度算法，仍在 GPU guest 内执行；加法、除法、取模等运算也在
-guest 内执行。C 可以通过 `gpu_guest.h` 中的 `gpu_big_mul` 调用同一服务。
-输入是低位在前的 16 位 limbs，每个输入 1～256 个，输出缓冲区需要 `an+bn`
-个，不能与输入重叠。ECALL `a7=0x200`，`a0`～`a4` 分别是输出地址、
-A 地址、A 长度、B 地址、B 长度；返回有效输出长度，参数错误返回 -1。
-返回结果中的 `bigint_calls` 是实际服务调用次数，全程没有 CPU 回调。
-`run_code(..., services=True)` 开启此 ABI；未知服务返回 VM 状态 7。
-指令预算在各次服务之间累计，单次原生乘法限制为最多 256×256 个 limb
-乘积；原生工作量不计作 guest 指令数。
+MicroPython 乘法会自动使用 **CUDA 大整数服务**，每个输入最多 4096 位，
+输出最多 8192 位。更大的乘法回退到 MicroPython 在客户机中执行的精确算法；
+加法、除法、取余及其他整数运算也在客户机中执行。
+这是 CUDA 中的软件协处理器，没有 CPU 回调。C 可以通过 `gpu_guest.h` 中的
+`gpu_big_mul` 调用它：输入为无符号、小端序、以 65536 为基数的数位（limb），
+每个输入包含 1～256 个 limb，独立的输出缓冲区包含 `an+bn` 个 limb。
+ECALL `a7=0x200` 通过 `a0`～`a4` 接收输出地址、A 地址、A 长度、B 地址、B 长度，
+返回有效输出 limb 数；边界、对齐、数量或缓冲区重叠不合法时返回 -1。
+结果中的 `bigint_calls` 统计服务调用次数。`run_code(..., services=True)` 开启此 ABI；
+未知服务以 VM 状态 7（`unknown_service`）停止。客户机指令预算在服务调用之间累计。
+每次乘法另有限制，最多执行 256×256 个 limb 乘积；这些原生操作不计作 RISC-V 指令步数。
 
-两个新后端均使用 4 MiB RAM，至少保留 256 KiB 栈。
+两条新的客户机执行路径均使用 4 MiB RAM，至少保留 256 KiB 栈。
 MicroPython 使用 1 MiB 堆，源码与 stdout 分别最多 16383 字节；C 源码最多
 65535 字节，stdout 上限相同。`error=1` 为未捕获异常（stdout 含 traceback），
-2 为输出溢出，3 为 guest 致命错误，4 为不支持的 C 格式；VM 故障和预算耗尽
-另由 `status` 报告。默认指令预算为 2 亿。这些限制并不能消除 C 程序自身的内存错误。
+2 为输出溢出，3 为客户机致命错误，4 为不支持的 C 格式。
+`status` 独立报告虚拟机故障和预算耗尽。默认指令预算为 2 亿。
+这些边界限制可以防止虚拟机无限执行，但不能消除 C 程序自身的内存错误。
 
-每次执行仍然只需 **一次 CPU kernel 启动**，包含全部大整数服务调用。
+每次执行仍然只需 **一次主机 kernel 启动**，包含全部大整数服务调用。
 现有配套 Qwen 执行图仍使用下面的轻量 Python 子集，新后端不会自动替换它。
 
 ## 轻量 Python 子集
@@ -291,5 +290,5 @@ CPU/GPU 汇编器一致性、Python 控制流/错误/容量限制，以及原生
 }
 ```
 
-也可使用 [BibTeX 文件](CITATION.bib)，或通过 [CITATION.cff](CITATION.cff)
-使用 GitHub 的 **Cite this repository** 功能获取引用格式。
+引用信息也提供 [BibTeX](CITATION.bib) 和
+[Citation File Format](CITATION.cff) 格式，可用于 GitHub 的 **Cite this repository** 功能。
