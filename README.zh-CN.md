@@ -234,6 +234,20 @@ CUDA_VISIBLE_DEVICES=0 /tmp/native_resume
 应用可以提供自己的服务处理逻辑，并将该接口嵌入 CUDA 执行图。
 矩阵、文件系统和模型编排仍由应用层集成。
 
+## 对齐 Qwenputer 的评测
+
+[配对评测说明](benchmarks/README.md)使用作者公开的 5 组算术题，每组 40 题，
+对齐 BF16 语言权重、提示词、greedy 解码和关闭 thinking 的设置。
+默认 C 后端执行作者的同一份计算器源码，把十进制大整数行操作接到 CUDA
+ECALL。这个对照保留两边的 CPU 解码循环，用于比较执行引擎，不代表 GPU
+自主编排性能。答案评分和固件轨迹回放在计时后进行，失败样本同样保留。
+
+实验性 ECALL `0x201` 提供 8×128 字节十进制寄存器文件的行乘加、减法和
+ASCII 数字加载，寄存器接口见 `native/include/bigint.cuh` 和
+[计算器移植层](benchmarks/qwenputer_calc/port.h)。`bigint_calls` 同时统计
+原有 base-65536 乘法及新增十进制行操作。MicroPython 已开启运算符重载，
+便于实现精确分数适配层。
+
 ## 测试与打包
 
 ```bash

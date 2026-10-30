@@ -250,6 +250,23 @@ yield. Application-specific service handlers can embed this interface in a
 CUDA execution graph. Matrix, filesystem and model orchestration remain
 application-level integrations.
 
+## Matched Qwenputer evaluation
+
+[The paired benchmark](benchmarks/README.md) uses the author's five arithmetic
+sets, 40 problems each, with identical BF16 language weights, prompts, greedy
+decoding and disabled thinking. Its default C backend runs the author's same
+calculator source, with CUDA decimal-row ECALL bindings. Both decoding loops
+remain host-controlled for this comparison; it does not measure autonomous
+GPU orchestration. Ground-truth scoring and firmware replay happen after
+timed requests. The benchmark records failures as well as successful answers.
+
+The additional experimental ECALL `0x201` provides decimal digit-row MAC,
+subtract and ASCII load over an 8×128-byte guest digit file; its register
+binding is documented in `native/include/bigint.cuh` and the calculator's
+[port](benchmarks/qwenputer_calc/port.h). `bigint_calls` counts both base-65536
+multiplication and decimal-row services. MicroPython operator overloading
+is enabled for exact rational adapters.
+
 ## Tests and packaging
 
 ```bash

@@ -42,6 +42,8 @@ The existing matched environment is reused, rather than adding model packages
 to the standalone runtime environment:
 
 ```bash
+uv run python benchmarks/prepare_data.py \
+  --model ../m5gp/examples/qwen_rv32/models/Qwen3.5-4B-Qwenputer
 CUDA_VISIBLE_DEVICES=0 GPU_RV32_CACHE="$PWD/.cache" \
   uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
   python benchmarks/compare_qwenputer.py --output runs/public_math
@@ -53,6 +55,21 @@ GPU UUIDs, checkpoint revisions, compiler/source hashes, complete command,
 selected questions, raw generation tokens, per-item latency and exit status
 are recorded. `--resume` requires compatible data, limits, source and device
 configuration. `summary.json` is updated after every problem/arm.
+
+After the two shard jobs finish, run the independent CPU auditor:
+
+```bash
+uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
+  python benchmarks/audit_qwenputer.py runs/public_math
+```
+
+It regenerates the selected problems, recomputes exact answer scores, checks
+prompt identity, replays every firmware-owned token/response on the original
+CPU reference machine, verifies VM status and counts text-identical pairs.
+Paired latency ratios are reported for all requests and for the common subset
+with correct answers and normal EOS, with a seeded 2000-resample bootstrap CI.
+`--allow-partial` audits completed items during a long run and caches checks
+by raw-generation and auditor-source hashes; it marks the run incomplete.
 
 The local environment uses Torch 2.9/CUDA 12.8 and lacks optional causal-conv1d
 and flash-linear-attention. This is shared by both arms and differs from the
