@@ -101,11 +101,14 @@ class Request:
         return state, elapsed, launches
 
 
-def tool_reference(expression):
+def tool_reference(expression, observed=None):
     """Post-run oracle; the original C firmware defines unsupported syntax."""
     from chipformer.rv import calc
     try:
-        return calc.expected(expression), 'python'
+        value = calc.expected(expression)
+        if observed is not None and value != observed:
+            return calc.run(expression)[0], 'original_cpu_firmware'
+        return value, 'python'
     except (NameError, SyntaxError, ValueError, TypeError, ArithmeticError):
         return calc.run(expression)[0], 'original_cpu_firmware'
 
@@ -118,7 +121,7 @@ def record(chat, state, seconds, launches, question):
     for t in state.tools[:state.calls]:
         expression, output = t.expression.decode(), t.output.decode()
         reference, method = (('error (too long: split it)\n' if t.gather_error == 2 else 'error\n'), 'capture_error') \
-            if t.gather_error else tool_reference(expression)
+            if t.gather_error else tool_reference(expression, output)
         tools.append(dict(expression=expression, output=output, status=t.status, error=t.error,
             steps=t.steps, bigint_calls=t.bigint_calls, gather_error=t.gather_error,
             elapsed_ns=t.elapsed_ns, reference=reference, reference_equal=output==reference,

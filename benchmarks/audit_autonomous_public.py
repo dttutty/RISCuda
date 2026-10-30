@@ -23,7 +23,7 @@ def main():
     ap.add_argument('--allow-partial',action='store_true')
     args=ap.parse_args()
     sys.path.insert(0,str(args.qwenputer/'experimental/riscv'))
-    from chipformer.rv import bridge as BR
+    from chipformer.rv import bridge as BR,calc
     from chipformer.q35 import arith_bench as AB,evals as E
     from chipformer.rv.evalarith import NUDGE
     from benchmarks.autonomous_qwenputer import DATASETS
@@ -40,6 +40,7 @@ def main():
     cache=prior.get('cases',{}) if prior.get('auditor_sha256')==auditor_sha and prior.get('reference_context')==context else {}
     cases,rows,raw,metadata,canonical_hashes={},{},{},[],set()
     complete=True
+    oracle_disagreements=[]
     recoveries=json.loads((args.run/'recoveries.json').read_text()) if (args.run/'recoveries.json').exists() else []
     recovered={r['interrupted_segment']:r for r in recoveries}
     directories=sorted(p for p in args.run.glob('shard[0-9]*') if p.is_dir())
@@ -138,7 +139,14 @@ def main():
                     assert t['expression']==actual.expression.decode()
                     assert t['output']==actual.output.decode()
                     assert t['status']==actual.status==0 and t['error']==actual.error==0
-                    assert t['reference_equal']
+                    if not t['reference_equal']:
+                        # Unbounded Python arithmetic omits the original C parser's
+                        # register/capacity limits. The firmware is authoritative.
+                        authoritative=calc.run(t['expression'])[0]
+                        assert t['output']==authoritative,('firmware mismatch',row['id'],t)
+                        oracle_disagreements.append(dict(id=row['id'],expression=t['expression'],
+                            output=t['output'],numeric_reference=t['reference'],
+                            firmware_reference=authoritative,firmware_equal=True))
             fingerprint=sha(path)
             old=cache.get(key,{})
             if old.get('raw_sha256')==fingerprint:
@@ -178,6 +186,7 @@ def main():
     output=dict(audited_at=datetime.now(timezone.utc).isoformat(),auditor_sha256=auditor_sha,
         reference_context=context,complete=complete,full_public_evaluation=complete and len(paired)==200,
         records=len(rows),paired_problems=len(paired),cases=cases,metadata=metadata,recoveries=recoveries,
+        numeric_oracle_disagreements=oracle_disagreements,
         overall=overall,by_dataset=by_dataset,text_identical_pairs=equal,shared_prefix_equal_pairs=prefixes,
         text_identical_subset=stats(identical),text_differences=differences,
         native_graph_launches={str(n):sum(r['arm']=='riscuda' and r['host_graph_launches']==n for r in rows.values()) for n in (1,)},
