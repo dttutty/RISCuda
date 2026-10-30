@@ -35,7 +35,7 @@ class CompilerTests(unittest.TestCase):
         self.assertTrue((ROOT / "native/runtime.cu").is_file())
 
     def test_machine_image_validation_before_cuda(self):
-        for code in [b"", b"abc", bytes(65540)]:
+        for code in [b"", b"abc", bytes(1048580)]:
             with self.assertRaises(ValueError):
                 run_code(code)
         for kwargs in [{"entry": 2}, {"entry": 4}, {"ram_size": 0},

@@ -11,21 +11,24 @@ import sys
 from .assembler import assemble
 from .python_vm import compile_program, run_program
 from .runtime import run_assembly
+from .c_vm import compile_c, run_c
+from .micropython_vm import compile_micropython, run_micropython
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="language", required=True)
-    for language in ["asm", "python"]:
+    for language in ["asm", "python", "c", "micropython"]:
         command = sub.add_parser(language)
         command.add_argument("source", type=Path)
         command.add_argument("--compile-only", action="store_true")
         command.add_argument("--output", type=Path, help="new artifact directory")
-        command.add_argument("--instruction-budget", type=int, default=20000000 if language == "python" else 4096)
+        command.add_argument("--instruction-budget", type=int,
+                             default={"asm": 4096, "python": 20000000}.get(language, 200000000))
         if language == "asm":
             command.add_argument("--input", type=lambda s: int(s, 0), default=0)
             command.add_argument("--gpu-assembler", action="store_true")
-        else:
+        elif language == "python":
             command.add_argument("--statement-budget", type=int, default=10000)
     args = parser.parse_args()
     source = args.source.read_text()
@@ -35,10 +38,16 @@ def main():
     metadata = {"source_sha256": hashlib.sha256(source.encode()).hexdigest(),
                 "command": sys.argv, "code_commit": git.stdout.strip() if git.returncode == 0 else None,
                 "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES", "unset")}
-    if args.language == "python":
-        image = compile_program(source, statement_budget=args.statement_budget)
+    if args.language != "asm":
+        if args.language == "python":
+            image = compile_program(source, statement_budget=args.statement_budget)
+            execute = run_program
+        elif args.language == "c":
+            image, execute = compile_c(source), run_c
+        else:
+            image, execute = compile_micropython(source), run_micropython
         metadata["interpreter"] = image.metadata
-        result = None if args.compile_only else run_program(image, instruction_budget=args.instruction_budget)
+        result = None if args.compile_only else execute(image, instruction_budget=args.instruction_budget)
         if args.output:
             (args.output / "interpreter.elf").write_bytes(image.elf)
             (args.output / "initial_ram.bin").write_bytes(image.memory)
@@ -53,7 +62,8 @@ def main():
         if args.output:
             (args.output / "program.bin").write_bytes(code)
     if args.output:
-        (args.output / ("source.py" if args.language == "python" else "source.S")).write_text(source)
+        suffix = {"python": "py", "micropython": "py", "c": "c", "asm": "S"}[args.language]
+        (args.output / ("source."+suffix)).write_text(source)
         (args.output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
     display = {k: v for k, v in result.items() if k not in {"memory", "machine_code"}} if result is not None else metadata
     if args.output and result is not None:

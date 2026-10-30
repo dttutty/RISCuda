@@ -13,7 +13,7 @@ from .assembler import assemble
 from .build import ROOT, cache_dir, cuda_config
 
 STATUSES = {0: "halt", 1: "instruction_budget", 2: "instruction_fetch", 3: "illegal_instruction",
-            4: "memory_access", 5: "breakpoint"}
+            4: "memory_access", 5: "breakpoint", 7: "unknown_service"}
 
 
 class Result(ct.Structure):
@@ -28,7 +28,7 @@ class AssemblyResult(ct.Structure):
 @cache
 def library():
     nvcc, arch = cuda_config()
-    sources = [ROOT / "native" / p for p in ["runtime.cu", "include/rv32_core.cuh", "include/gpu_assembler.cuh"]]
+    sources = [ROOT / "native" / p for p in ["runtime.cu", "include/rv32_core.cuh", "include/gpu_assembler.cuh", "include/bigint.cuh"]]
     version = subprocess.check_output([nvcc, "--version"])
     key = hashlib.sha256(version + arch.encode() + b"".join(p.read_bytes() for p in sources)).hexdigest()[:20]
     build = cache_dir() / "cuda"
@@ -45,7 +45,7 @@ def library():
     lib.rv32_assembly_size.restype = ct.c_size_t
     assert lib.rv32_assembly_size() == ct.sizeof(AssemblyResult)
     lib.rv32_run.argtypes = [ct.c_void_p, ct.c_int, ct.c_void_p, ct.c_int, ct.c_int, ct.c_int,
-                            ct.c_int, ct.POINTER(Result), ct.POINTER(ct.c_float)]
+                            ct.c_int, ct.c_int, ct.POINTER(Result), ct.POINTER(ct.c_float), ct.POINTER(ct.c_uint32)]
     lib.rv32_run_assembly.argtypes = [ct.c_char_p, ct.c_int, ct.c_int, ct.c_void_p, ct.POINTER(ct.c_float)]
     return lib
 
@@ -62,11 +62,12 @@ def budget(value):
     return value
 
 
-def run_code(code, *, memory=None, ram_size=None, entry=0, input=0, instruction_budget=20000000):
+def run_code(code, *, memory=None, ram_size=None, entry=0, input=0, instruction_budget=20000000,
+             services=False):
     code = bytes(code)
     size = ram_size if ram_size is not None else len(memory) if memory is not None else 65536
-    if not 1 <= size <= 65536 or not 4 <= len(code) <= 65536 or len(code) % 4:
-        raise ValueError("require 1..65536 RAM bytes and 1..16384 machine words")
+    if not 1 <= size <= 4194304 or not 4 <= len(code) <= 1048576 or len(code) % 4:
+        raise ValueError("require 1..4194304 RAM bytes and 1..262144 machine words")
     if entry < 0 or entry % 4 or entry >= len(code):
         raise ValueError("entry must be an aligned byte offset inside code")
     memory = bytes(size) if memory is None else bytes(memory)
@@ -75,14 +76,15 @@ def run_code(code, *, memory=None, ram_size=None, entry=0, input=0, instruction_
     input, instruction_budget = integer(input), budget(instruction_budget)
     lib = library()
     device_code, ram = ct.create_string_buffer(code), ct.create_string_buffer(memory, size)
-    result, milliseconds = Result(), ct.c_float()
+    result, milliseconds, calls = Result(), ct.c_float(), ct.c_uint32()
     started = time.perf_counter()
-    if lib.rv32_run(device_code, len(code) // 4, ram, size, entry, input, instruction_budget,
-                    ct.byref(result), ct.byref(milliseconds)):
+    if lib.rv32_run(device_code, len(code) // 4, ram, size, entry, input, instruction_budget, int(services),
+                    ct.byref(result), ct.byref(milliseconds), ct.byref(calls)):
         raise RuntimeError(lib.rv32_error().decode())
     return {"value": result.value, "status": result.status, "status_name": STATUSES.get(result.status, "unknown"),
             "steps": result.steps, "memory": ram.raw, "gpu_milliseconds": milliseconds.value,
-            "request_seconds": time.perf_counter() - started, "kernel_launches": 1}
+            "request_seconds": time.perf_counter() - started, "kernel_launches": 1,
+            "bigint_calls": calls.value}
 
 
 def run_assembly(source, *, input=0, instruction_budget=4096, device_assembler=False):

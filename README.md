@@ -22,7 +22,7 @@ single host launch covers prompt prefill, generation, the Python tool and
 feedback through the final answer. The standalone package provides the
 RISC-V/Python execution layer and device-side service interface.
 
-**53 local tests passed · GPU execution verified from an installed wheel ·
+**GPU execution verified from an installed wheel · C and real MicroPython guests ·
 Standalone core requires no PyTorch or model weights**
 
 ## Quick start
@@ -35,6 +35,8 @@ uv run gpu-rv32 python examples/sum.py --compile-only
 # Select a checked idle NVIDIA GPU before execution:
 CUDA_VISIBLE_DEVICES=0 uv run gpu-rv32 asm examples/multiply.S
 CUDA_VISIBLE_DEVICES=0 uv run gpu-rv32 python examples/sum.py
+CUDA_VISIBLE_DEVICES=0 uv run gpu-rv32 c examples/bigint.c
+CUDA_VISIBLE_DEVICES=0 uv run gpu-rv32 micropython examples/bigint.py
 ```
 
 ```python
@@ -107,7 +109,7 @@ answer = run_code(assemble("lw a0, 0(zero)\necall"), memory=(42).to_bytes(4, "li
 assert answer["value"] == 42
 ```
 
-Raw execution accepts up to 16384 little-endian words and 1..65536 RAM bytes.
+Raw execution accepts up to 262144 little-endian words and 1..4194304 RAM bytes.
 Assembly convenience calls use fresh 1024-byte RAM, with `sp=1024` and input
 in `a0`. `x0` stays zero; arithmetic wraps modulo 2^32. ECALL halts and returns
 `a0`; EBREAK reports a breakpoint. Misaligned/out-of-bounds accesses fail.
@@ -128,7 +130,62 @@ and `jalr rd, rs1, imm`; the GPU text syntax is narrower than the VM's ISA.
 They accept up to 1024 emitted instructions. The GPU assembler also limits
 source to 8191 bytes and labels to 64. No assembler directives or relocations.
 
-## Python subset
+## C, MicroPython and native big integers
+
+```python
+from gpu_rv32 import compile_c, run_c, compile_micropython, run_micropython
+
+c = compile_c('#include <stdio.h>\nint main(void) { printf("%d\\n", 2*8); return 0; }')
+assert run_c(c)["stdout"] == "16\n"
+image = compile_micropython("print(2**256)\n")
+answer = run_micropython(image)
+assert answer["status"] == answer["error"] == 0
+print(answer["stdout"], answer["bigint_calls"])
+```
+
+`c` compiles freestanding C with Zig on the CPU before GPU execution. The entry
+point is `int main(void)`; the return value is in `value`. Packaged helpers
+provide memory copying, `puts`, `putchar`, `guest_write` and integer `printf`
+(`%d/%i/%u/%x/%X/%s/%c/%%`, optional `l/ll/z`, width and zero padding).
+There is no general libc, OS, malloc, Linux syscall or host filesystem API.
+
+`micropython` runs **real MicroPython v1.27.0** compiled to RV32IM, with its
+parser, bytecode compiler, VM, allocator and garbage collector all executing
+inside the GPU kernel. Functions, classes, `for/range`, lists, dictionaries,
+strings, generators, exceptions and arbitrary-precision integers are available.
+The integer-only port disables floating point, native emitters, external file
+imports, networking and file I/O; it is not CPython or a full desktop Python.
+The pinned MIT-licensed upstream sources are packaged; see
+[MicroPython provenance](src/gpu_rv32/vendor/micropython/PROVENANCE.md).
+Building requires GNU make in addition to Zig, with no runtime source download.
+
+MicroPython multiplication automatically uses a **CUDA big-integer service**
+for operands up to 4096 bits each (8192-bit output). Larger products fall back
+to MicroPython's exact guest implementation; addition, division, remainder
+and other integer operations also execute in the guest. This is a software
+coprocessor in CUDA, with no CPU callback. C can call it through
+`gpu_big_mul` in `gpu_guest.h`: unsigned little-endian base-65536 limbs,
+1..256 limbs per input, distinct output buffer of `an+bn` limbs. ECALL `a7=0x200`
+takes output/A/A-length/B/B-length in `a0`..`a4`, and returns used output limbs
+or -1 on invalid bounds/alignment/count/overlap. Result `bigint_calls` counts
+service invocations. `run_code(..., services=True)` enables this ABI; unknown
+services stop with VM status 7 (`unknown_service`). Guest step budgets are
+cumulative across service calls. Each multiplication is separately bounded
+to at most 256×256 limb products; these native operations are not RV steps.
+
+Both new guest paths use 4 MiB RAM with at least 256 KiB reserved for stack.
+MicroPython has a 1 MiB heap, 16383-byte source and 16383-byte captured stdout;
+C accepts 65535-byte source and the same stdout bound. `error=1` reports an
+uncaught MicroPython exception (traceback in stdout), 2 stdout overflow, 3 a
+fatal guest error, and 4 an unsupported C format. `status` independently
+reports machine faults/budget exhaustion. Default instruction budget is
+200 million. These bounds prevent unbounded VM execution, not C memory bugs.
+
+Every invocation is still **one host kernel launch**, including all bigint
+service calls. The existing companion Qwen graph currently uses the smaller
+Python subset below; this standalone backend does not automatically replace it.
+
+## Lightweight Python subset
 
 The guest supports signed 32-bit integers, variables, assignment, expressions,
 `print(integer)`, `if/else`, `while`, `pass`, comments and spaces for indentation.
