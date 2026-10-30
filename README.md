@@ -1,5 +1,7 @@
 # GPU RV32 + Python
 
+**English** | [简体中文](README.zh-CN.md)
+
 A standalone CUDA software interpreter for real RV32IM machine instructions,
 with a freestanding integer Python-subset interpreter compiled to RV32IM.
 It uses the Python standard library, the pinned Zig toolchain and CUDA;
@@ -87,8 +89,8 @@ The guest supports signed 32-bit integers, variables, assignment, expressions,
 `print(integer)`, `if/else`, `while`, `pass`, comments and spaces for indentation.
 Expressions support `+ - * // %`, comparisons/chains, `& | ^ ~ << >>`,
 `and/or/not`, and `True/False`. `//` and `%` use Python's floor rule; arithmetic
-wraps at 32 bits. Negative shifts fail; shifts of 32 or more saturate to zero or
-the sign bit, rather than allocating arbitrary-precision integers.
+wraps at 32 bits. Negative shifts fail; shifts of 32 or more produce zero for
+left shifts, and zero or -1 for right shifts according to the sign of the input.
 
 This is a bounded language subset: no imports, function definitions, strings,
 containers, floats, `for/range`, `break/continue`, or augmented assignment.
