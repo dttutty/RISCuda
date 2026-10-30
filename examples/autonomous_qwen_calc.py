@@ -101,6 +101,15 @@ class Request:
         return state, elapsed, launches
 
 
+def tool_reference(expression):
+    """Post-run oracle; the original C firmware defines unsupported syntax."""
+    from chipformer.rv import calc
+    try:
+        return calc.expected(expression), 'python'
+    except (NameError, SyntaxError, ValueError, TypeError, ArithmeticError):
+        return calc.run(expression)[0], 'original_cpu_firmware'
+
+
 def record(chat, state, seconds, launches, question):
     from chipformer.rv import calc
     tokens = list(state.tokens[:state.total])
@@ -108,10 +117,12 @@ def record(chat, state, seconds, launches, question):
     tools = []
     for t in state.tools[:state.calls]:
         expression, output = t.expression.decode(), t.output.decode()
-        reference = 'error (too long: split it)\n' if t.gather_error == 2 else 'error\n' if t.gather_error else calc.expected(expression)
+        reference, method = (('error (too long: split it)\n' if t.gather_error == 2 else 'error\n'), 'capture_error') \
+            if t.gather_error else tool_reference(expression)
         tools.append(dict(expression=expression, output=output, status=t.status, error=t.error,
             steps=t.steps, bigint_calls=t.bigint_calls, gather_error=t.gather_error,
-            elapsed_ns=t.elapsed_ns, reference=reference, reference_equal=output==reference))
+            elapsed_ns=t.elapsed_ns, reference=reference, reference_equal=output==reference,
+            reference_method=method))
     # Replay the generated stream through the stock bridge parser after completion.
     calls = iter(tools)
     capture = Capture(chat.T, lambda expression: next(calls)['output'])

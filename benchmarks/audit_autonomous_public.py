@@ -4,6 +4,7 @@ import csv
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import subprocess
 import sys
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -39,6 +40,8 @@ def main():
     cache=prior.get('cases',{}) if prior.get('auditor_sha256')==auditor_sha and prior.get('reference_context')==context else {}
     cases,rows,raw,metadata,canonical_hashes={},{},{},[],set()
     complete=True
+    recoveries=json.loads((args.run/'recoveries.json').read_text()) if (args.run/'recoveries.json').exists() else []
+    recovered={r['interrupted_segment']:r for r in recoveries}
     directories=sorted(p for p in args.run.glob('shard[0-9]*') if p.is_dir())
     if not directories:
         directories=[args.run]
@@ -49,7 +52,8 @@ def main():
         assert not m['dirty'],'production benchmark must identify a clean code commit'
         assert all(c['match'] for c in m['modelscope_identity.json']['checks'])
         for name,digest in m['source_sha256'].items():
-            assert sha(ROOT/name)==digest,('changed source',name)
+            committed=subprocess.check_output(['git','show',m['code_commit']+':'+name],cwd=ROOT)
+            assert __import__('hashlib').sha256(committed).hexdigest()==digest,('unrecorded source',name)
         for name,info in m['download_manifest.json']['files'].items():
             assert sha(args.data/'dm'/name)==info['sha256']
         assert json.loads((d/'language_equivalence.json').read_text())['bit_equal']
@@ -79,7 +83,7 @@ def main():
             gate=d/f'prefill_gate_{group["length"]}.json'
             if gate.exists():
                 assert json.loads(gate.read_text())['bit_equal']
-            elif not args.allow_partial:
+            elif not args.allow_partial and d.name not in recovered:
                 raise AssertionError(f'missing prefill-equivalence check: {gate}')
         expected={p['id']:p for p in selected}
         lines=(d/'records.jsonl').read_text().splitlines() if (d/'records.jsonl').exists() else []
@@ -88,8 +92,23 @@ def main():
             try:local.append(json.loads(line))
             except json.JSONDecodeError:
                 if not args.allow_partial or n!=len(lines)-1:raise
-        complete &= len(local)==len(selected)*len(m['arms'])
-        complete &= (d/'exit_status').exists() and (d/'exit_status').read_text().strip()=='0'
+        segment_complete=len(local)==len(selected)*len(m['arms']) and (d/'exit_status').exists() and (d/'exit_status').read_text().strip()=='0'
+        if d.name in recovered:
+            recovery=recovered[d.name]
+            assert (d/'exit_status').read_text().strip()=='1'
+            assert sha(args.run/(d.name+'.log'))==recovery['interrupted_log_sha256']
+            assert 'NameError: name \'abs\' is not defined' in (args.run/(d.name+'.log')).read_text()
+            successor=args.run/recovery['continuation_segment']
+            next_m=json.loads((successor/'metadata.json').read_text())
+            completed_ids={r['id'] for r in local}
+            assert set(next_m['ids'])==set(expected)-completed_ids
+            assert all(sum(r['id']==pid for r in local)==2 for pid in completed_ids)
+            assert next_m['cuda_visible_devices']==m['cuda_visible_devices']
+            assert next_m['model']==m['model'] and next_m['budget']==m['budget']
+            assert all(next_m['source_sha256'][name]==digest for name,digest in m['source_sha256'].items()
+                       if name!='examples/autonomous_qwen_calc.py')
+            segment_complete=True  # Global pair coverage below must include every missing ID.
+        complete &= segment_complete
         for row in local:
             key=row['arm']+':'+row['id']
             assert key not in rows,'duplicate record'
@@ -105,6 +124,7 @@ def main():
                 assert row[name]==value
             assert row['normal_eos']==(bool(r['tokens']) and r['tokens'][-1] in (248046,248044))
             if row['arm']=='riscuda':
+                assert json.loads((d/f'prefill_gate_{row["prefill_tokens"]}.json').read_text())['bit_equal']
                 state_path=d/(row['id']+'.riscuda.state.bin')
                 s=State.from_buffer_copy(state_path.read_bytes())
                 assert list(s.tokens[:s.total])==r['tokens']
@@ -139,6 +159,8 @@ def main():
     pairs={}
     for row in rows.values():pairs.setdefault(row['id'],{})[row['arm']]=row
     paired=[pair for pair in pairs.values() if len(pair)==2]
+    if recoveries and not args.allow_partial:
+        assert len(paired)==len(canonical) and set(pairs)=={p['id'] for p in canonical}
     equal=prefixes=0
     differences=[]
     for pair in paired:
@@ -155,7 +177,7 @@ def main():
     identical=[p for p in paired if raw['riscuda:'+p['riscuda']['id']]['tokens']==[t for t in raw['qwenputer:'+p['riscuda']['id']]['tokens'] if t<base]]
     output=dict(audited_at=datetime.now(timezone.utc).isoformat(),auditor_sha256=auditor_sha,
         reference_context=context,complete=complete,full_public_evaluation=complete and len(paired)==200,
-        records=len(rows),paired_problems=len(paired),cases=cases,metadata=metadata,
+        records=len(rows),paired_problems=len(paired),cases=cases,metadata=metadata,recoveries=recoveries,
         overall=overall,by_dataset=by_dataset,text_identical_pairs=equal,shared_prefix_equal_pairs=prefixes,
         text_identical_subset=stats(identical),text_differences=differences,
         native_graph_launches={str(n):sum(r['arm']=='riscuda' and r['host_graph_launches']==n for r in rows.values()) for n in (1,)},
