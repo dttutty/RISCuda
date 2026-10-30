@@ -6,6 +6,8 @@ It uses the Python standard library, the pinned Zig toolchain and CUDA;
 there is no model runtime dependency.
 
 ```bash
+git clone https://github.com/dttutty/gpu-rv32-python.git
+cd gpu-rv32-python
 uv sync --locked
 uv run gpu-rv32 python examples/sum.py --compile-only
 # Select a checked idle NVIDIA GPU before execution:

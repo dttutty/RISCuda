@@ -184,4 +184,3 @@ class GPUAssemblerTests(unittest.TestCase):
     def test_instruction_budget(self):
         tool = self.run_program("forever: j forever")
         self.assertEqual((tool.status, tool.steps), (1, 4096))
-
