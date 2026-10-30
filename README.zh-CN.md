@@ -236,6 +236,13 @@ CUDA_VISIBLE_DEVICES=0 /tmp/native_resume
 
 ## 对齐 Qwenputer 的评测
 
+公开 5 组、共 200 道算术题中，两边都答对 **195/200**。
+对齐 BF16 语言权重、提示词和计算器接口后，在双方答对并正常结束的
+194 道题上，RISCuda 端到端总耗时降低 **15.9%**。
+199/200 对的完整文字 token 一致，另一对仅停止位置不同。
+参见[完整结果与限制](VALIDATION.md#matched-200-problem-qwenputer-arithmetic-evaluation)
+及[200 道逐题对照数据](docs/evidence/qwenputer_arithmetic_200.csv)。
+
 [配对评测说明](benchmarks/README.md)使用作者公开的 5 组算术题，每组 40 题，
 对齐 BF16 语言权重、提示词、greedy 解码和关闭 thinking 的设置。
 默认 C 后端执行作者的同一份计算器源码，把十进制大整数行操作接到 CUDA

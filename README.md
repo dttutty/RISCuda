@@ -252,6 +252,14 @@ application-level integrations.
 
 ## Matched Qwenputer evaluation
 
+On the public five-set arithmetic evaluation (200 problems), both arms scored
+**195/200**. With the same BF16 language weights, prompts and calculator
+interface, RISCuda reduced end-to-end latency by **15.9%** on the 194 common
+correctly completed requests. Full text tokens matched in 199/200 pairs;
+the remaining pair differed only at its cutoff. See the
+[complete results](VALIDATION.md#matched-200-problem-qwenputer-arithmetic-evaluation)
+and [200 paired measurements](docs/evidence/qwenputer_arithmetic_200.csv).
+
 [The paired benchmark](benchmarks/README.md) uses the author's five arithmetic
 sets, 40 problems each, with identical BF16 language weights, prompts, greedy
 decoding and disabled thinking. Its default C backend runs the author's same

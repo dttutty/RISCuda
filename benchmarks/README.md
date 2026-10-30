@@ -1,5 +1,15 @@
 # Paired Qwenputer arithmetic benchmark
 
+The completed 200-problem local run scored **195/200 for each arm**. RISCuda
+reduced end-to-end latency by **15.92%** on the 194 common correctly completed
+requests (problem-bootstrap 95% interval 14.15%–17.68%). Including failed and
+truncated requests, cumulative duration fell 14.73%. Full text tokens matched
+in 199/200 pairs; all 200 shared prefixes matched. Both jobs exited 0, and all 400
+runs passed independent firmware/feedback replay. See the
+[result table and limitations](../VALIDATION.md#matched-200-problem-qwenputer-arithmetic-evaluation),
+[evidence](../docs/evidence/qwenputer_arithmetic_200.json), and
+[per-pair CSV](../docs/evidence/qwenputer_arithmetic_200.csv).
+
 This reproduces the public five arithmetic sets, 40 problems per set, seed 0:
 `arith`, `dmx_mul_big`, `dmx_div_big`, `dmx_mul_div_multiple_longer`, and
 `dmx_add_or_sub_big`. DeepMind files come from the official v1.0 archive at
