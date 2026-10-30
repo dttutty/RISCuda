@@ -41,7 +41,7 @@ GPU_RV32_CACHE="$PWD/.cache" CUDA_VISIBLE_DEVICES=0 \
 # A separate profiled request with two dependent tool calls:
 GPU_RV32_CACHE="$PWD/.cache" CUDA_VISIBLE_DEVICES=0 \
   nsys profile --trace=cuda --sample=none --cpuctxsw=none \
-    --cuda-graph-trace=node --capture-range=cudaProfilerApi \
+    --cuda-graph-trace=graph --cuda-event-trace=false --capture-range=cudaProfilerApi \
     --capture-range-end=stop --output=runs/autonomous_profile \
   uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
   python examples/autonomous_qwen_calc.py --case chain --profile \
@@ -60,6 +60,15 @@ includes actual prompt prefill, all generation, calculator work and feedback;
 it excludes model loading, compilation, capture, graph instantiation, initial
 cache reset and final trace download/validation. Profiler start/stop are inside
 the native submission wrapper. Only the GPU arm is profiled.
+
+Use the graph-level tracing settings above. The tested Nsight Systems 2025.1.3
+configuration with node-level graph tracing and automatic event tracing failed
+with an illegal memory access; the unprofiled request and the graph-level
+profile completed correctly. Graph-level tracing verifies host API calls and
+the complete device graph interval, but does not count individual graph kernel
+or copy nodes. Per-call execution/feedback is checked from the final state and
+independent CPU reference replay. Profiled timings are kept separate from
+unprofiled latency measurements.
 
 `--host-control` is an isolation control: it submits/checks **the same captured
 GPU step** from the CPU once per token. It is not the earlier eager Python
