@@ -1,6 +1,6 @@
 # GPU 控制的 Qwen → C 计算器 → Qwen
 
-[English](autonomous-calc.md) | **简体中文**
+[English](autonomous-calc.md) | **简体中文** · [返回首页](../README.zh-CN.md)
 
 `gpu_rv32.resident.ResidentLoop` 将原生 C 计算器接入 batch 1、greedy 解码的 Qwen 循环。
 初始化后，主机提交**一个 CUDA 执行图**，其中包含提示词预填充和由 GPU 控制的条件 WHILE 循环：

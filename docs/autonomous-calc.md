@@ -1,6 +1,6 @@
 # GPU-controlled Qwen → C calculator → Qwen
 
-**English** | [简体中文](autonomous-calc.zh-CN.md)
+**English** | [简体中文](autonomous-calc.zh-CN.md) · [Home](../README.md)
 
 `gpu_rv32.resident.ResidentLoop` integrates the native C calculator with a
 batch-one, greedy Qwen decode loop. After setup, the host submits **one CUDA

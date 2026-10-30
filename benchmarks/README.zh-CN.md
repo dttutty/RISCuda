@@ -1,6 +1,6 @@
 # Qwenputer 算术配对评测
 
-[English](README.md) | **简体中文**
+[English](README.md) | **简体中文** · [返回首页](../README.zh-CN.md)
 
 ## 单次执行图版本
 
