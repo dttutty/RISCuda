@@ -16,7 +16,7 @@
 
 This example comes from a recorded Qwen3.8-27B run with our lightweight Python interpreter.
 
-**1. Ask Qwen a question** (translated from the recorded Chinese prompt):
+**1. Ask Qwen a question:**
 
 > Use a Python while loop to calculate a total, starting at zero. For each integer i from 1 through 137, add i² if i is divisible by 3; otherwise subtract 2i. Output the final total.
 
