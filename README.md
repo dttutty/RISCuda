@@ -1,15 +1,35 @@
-# GPU RV32 + Python
+# RISCV_ON_CUDA
+
+### A RISC-V core inside CUDA. A whole Python program in one kernel.
 
 **English** | [简体中文](README.zh-CN.md)
 
-A standalone CUDA software interpreter for real RV32IM machine instructions,
-with a freestanding integer Python-subset interpreter compiled to RV32IM.
-It uses the Python standard library, the pinned Zig toolchain and CUDA;
-there is no model runtime dependency.
+[![CPU tests](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml/badge.svg)](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml)
+
+**Give your NVIDIA GPU its own RISC-V execution core.** Run real RV32IM machine
+code and complete integer Python programs on the GPU: parsing, branches,
+loops, memory accesses and evaluation all happen inside one CUDA kernel,
+without CPU instruction stepping or host Python evaluation.
+
+| Workload | CPU submission | Validation |
+| --- | --- | --- |
+| A complete RISC-V or integer Python program | **One CUDA kernel launch** | This standalone package |
+| Custom tool services with yield/resume | **One CUDA kernel**, including both service calls | [Device example](examples/native_resume.cu) |
+| Qwen inference → Python execution → Qwen continuation | **One host CUDA Graph launch** | [Companion integration](VALIDATION.md#llm-integration-one-host-graph-launch) |
+
+The inference integration uses a graph containing multiple GPU kernels. Its
+single host launch covers prompt prefill, generation, the Python tool and
+feedback through the final answer. The standalone package provides the
+RISC-V/Python execution layer and device-side service interface.
+
+**53 local tests passed · GPU execution verified from an installed wheel ·
+Standalone core requires no PyTorch or model weights**
+
+## Quick start
 
 ```bash
-git clone https://github.com/dttutty/gpu-rv32-python.git
-cd gpu-rv32-python
+git clone https://github.com/dttutty/RISCV_ON_CUDA.git
+cd RISCV_ON_CUDA
 uv sync --locked
 uv run gpu-rv32 python examples/sum.py --compile-only
 # Select a checked idle NVIDIA GPU before execution:
@@ -30,6 +50,8 @@ The current runtime targets Linux and Python 3.12+. GPU execution needs `nvcc`
 The default compilation target is `sm_80`; set `GPU_RV32_CUDA_ARCH` to change it.
 Native build products go to the user cache, configurable with `GPU_RV32_CACHE`.
 The package includes all CUDA headers and guest C/assembly/linker sources.
+The standalone runtime uses the Python standard library, the pinned Zig
+toolchain and CUDA.
 
 ## What runs where
 
@@ -44,6 +66,29 @@ Each standalone API invocation launches one kernel. Programs and results still
 cross the host/device boundary at invocation boundaries. To integrate a longer
 GPU-controlled workflow, embed the device headers and use `resume_memory` as
 shown below; the standalone CLI does not orchestrate an LLM.
+
+## GPU-native tools for inference
+
+The device core can serve as an execution engine inside a GPU-controlled
+inference loop:
+
+```mermaid
+flowchart LR
+    Q[Qwen inference] -->|Generated Python| P[RISC-V core + Python interpreter]
+    P -->|GPU-generated result tokens| Q
+```
+
+A companion prototype completed this cycle with real Qwen3.8-27B weights:
+**117 decoding forwards, 1,338,921 guest instructions and one host graph
+launch**, returning the correct answer **269859**. Nsight recorded **zero
+host kernel launches and zero host/device copies during the request**.
+The measured GPU graph ran for 8.225 seconds, including prompt prefill.
+
+This is a separate model integration, with multiple kernels inside its CUDA
+graph. See the [validation record](VALIDATION.md#llm-integration-one-host-graph-launch)
+and [trace summary](docs/evidence/qwen_python_single_launch.json) for its scope
+and provenance. The standalone one-kernel Python path is available directly
+through the CLI and Python API below.
 
 ## Assembly API
 

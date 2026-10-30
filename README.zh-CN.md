@@ -1,15 +1,34 @@
-# GPU RV32 + Python
+# RISCV_ON_CUDA
+
+### RISC-V 核心搬进 CUDA。完整 Python 程序，一个 kernel 执行。
 
 [English](README.md) | **简体中文**
 
-这是一个独立的 CUDA 软件解释执行器，可以执行真实的 RV32IM 机器指令，
-并在其上运行一个编译为 RV32IM 的独立整数 Python 子集解释器。
-项目使用 Python 标准库、锁定版本的 Zig 工具链和 CUDA，
-无需安装模型推理框架。
+[![CPU 测试](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml/badge.svg)](https://github.com/dttutty/RISCV_ON_CUDA/actions/workflows/test.yml)
+
+**给 NVIDIA GPU 一个自己的 RISC-V 执行核心。** 在 GPU 上执行真实的
+RV32IM 机器码和完整的整数 Python 程序：解析、分支、循环、内存访问和
+求值都在一个 CUDA kernel 内完成，无需 CPU 逐条调度指令，
+也无需宿主机 Python 对输入程序求值。
+
+| 工作负载 | CPU 提交方式 | 验证范围 |
+| --- | --- | --- |
+| 一段完整的 RISC-V 或整数 Python 程序 | **一次 CUDA kernel 调用** | 当前独立库 |
+| 包含暂停/恢复的自定义工具服务 | **一个 CUDA kernel**，包含两次服务调用 | [设备端示例](examples/native_resume.cu) |
+| Qwen 推理 → Python 执行 → Qwen 继续推理 | **一次主机 CUDA Graph 启动** | [配套推理原型](VALIDATION.md#llm-integration-one-host-graph-launch) |
+
+推理集成的执行图内部包含多个 GPU kernel。一次主机启动覆盖提示词预填充、
+生成、Python 工具执行、结果反馈，直到最终答案。
+当前独立库提供其中的 RISC-V/Python 执行层和设备端服务接口。
+
+**53 项本地测试通过 · 已验证安装 wheel 后独立执行 GPU 程序 ·
+基础执行库无需 PyTorch 或模型权重**
+
+## 快速开始
 
 ```bash
-git clone https://github.com/dttutty/gpu-rv32-python.git
-cd gpu-rv32-python
+git clone https://github.com/dttutty/RISCV_ON_CUDA.git
+cd RISCV_ON_CUDA
 uv sync --locked
 uv run gpu-rv32 python examples/sum.py --compile-only
 # 执行前，请选择已经确认空闲且健康的 NVIDIA GPU：
@@ -30,6 +49,7 @@ print(run_program(image)["stdout"])
 默认编译目标为 `sm_80`，可通过 `GPU_RV32_CUDA_ARCH` 修改。
 原生编译产物存放在用户缓存目录，可通过 `GPU_RV32_CACHE` 指定位置。
 安装包包含全部 CUDA 头文件，以及客户机解释器的 C、汇编和链接脚本源码。
+独立运行时使用 Python 标准库、锁定版本的 Zig 工具链和 CUDA。
 
 ## CPU 和 GPU 各自执行什么
 
@@ -43,6 +63,26 @@ CPU 负责汇编输入，或使用 Zig 构建固定的 C 解释器，
 进行主机与设备之间的传输。如果需要接入由 GPU 控制的更长工作流，
 可以嵌入设备端头文件并使用下文的 `resume_memory` 接口。
 独立命令行工具本身不负责 LLM 编排。
+
+## 面向推理的 GPU 内工具执行
+
+设备端核心可以作为执行引擎，嵌入由 GPU 控制的推理循环：
+
+```mermaid
+flowchart LR
+    Q[Qwen 推理] -->|生成 Python| P[RISC-V 核心 + Python 解释器]
+    P -->|GPU 构造结果 token| Q
+```
+
+配套原型已使用真实 Qwen3.8-27B 权重跑通该循环：
+**117 次解码前向、1,338,921 条客户机指令，仅需一次主机执行图启动**，
+得到正确答案 **269859**。Nsight 记录显示，**请求期间主机 kernel 启动为零，
+主机与设备之间的数据拷贝也为零**。GPU 执行图耗时 8.225 秒，包含提示词预填充。
+
+这是单独的模型集成，其 CUDA 执行图内部包含多个 kernel。
+验证范围和来源见[验证记录](VALIDATION.md#llm-integration-one-host-graph-launch)
+与[轨迹摘要](docs/evidence/qwen_python_single_launch.json)。
+独立库的单 kernel Python 执行路径，可以通过下文的命令行工具和 Python API 直接使用。
 
 ## 汇编 API
 

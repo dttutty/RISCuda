@@ -1,0 +1,59 @@
+{
+  "scope": "Previously profiled companion Qwen integration; the standalone package ships the execution core and guest interpreter. One host CUDA Graph launch contains multiple GPU kernels.",
+  "model": {
+    "model": "Qwen/Qwen3.8-27B",
+    "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+  },
+  "quantization": "int8",
+  "thinking": false,
+  "question": "请用Python的while循环计算：i从1到137（含），如果i能被3整除，就把i的平方加入总和；否则从总和中减去2*i。总和初始为0，最后输出总和。",
+  "generated_python": "\ni = 1\ntotal = 0\nwhile i <= 137:\n    if i % 3 == 0:\n        total = total + i * i\n    else:\n        total = total - 2 * i\n    i = i + 1\nprint(total)\n",
+  "tool_result": 269859,
+  "guest_instructions": 1338921,
+  "guest_code_words": 1812,
+  "generated_tokens": 82,
+  "injected_tokens": 35,
+  "decode_forwards": 117,
+  "prefill_tokens": 450,
+  "final_cache_tokens": 567,
+  "trace": {
+    "scope": "cudaProfilerStart through cudaProfilerStop; excludes setup, warmup and output collection",
+    "cuda_api_calls": {
+      "cuProfilerStart": 1,
+      "cudaGraphLaunch_v10000": 1,
+      "cudaStreamSynchronize_v3020": 1
+    },
+    "host_graph_launches": 1,
+    "host_kernel_launches": 0,
+    "host_memcpy_calls": 0,
+    "host_device_copies": 0,
+    "gpu_graph_executions": 1,
+    "gpu_graph_seconds": 8.224940565,
+    "passed": true
+  },
+  "trace_granularity": "graph; individual GPU kernel executions were not collected and must not be interpreted as zero or one",
+  "source_provenance": {
+    "repository": "https://github.com/armandocardenasf/m5gp",
+    "base_commit": "c4c9ff92a6244d063635b5ae8d845bfedc7c9f0b",
+    "working_tree_dirty": true,
+    "source_sha256": {
+      "resident_demo.py": "7303f5ca548e2a183e1cf15eaf0dfc9be90823845f20f4d569c1f30a8af728be",
+      "gpu_loop.py": "3f57c3a21cafe166274c908a41f89d97444a2dd6e597ac89f6f9107021944cfc",
+      "gpu_loop.cu": "d6616f9e768743746a1ddcf75457c13039a3226f4b28993f172d257f4804615c",
+      "gpu_assembler.cuh": "41134cc0a9b53d3cc3c3ddefc443479e26aef9e10fdba5ba52dc9410b5250a5d",
+      "rv32_core.cuh": "e4f7f838499231d47db838972f077277ccbdd7aa544c90f2d003d64ba49ed5bf",
+      "python_vm.py": "ddfe017e6da18acbda8fb799cf156b931ff4dd3d73b06b86259d96c89ba906f4",
+      "python_vm/mini_python.c": "dda5b19399fbd155a637b6d5834de607ad8c0c699d43417cf486fc30bfb0afcb",
+      "python_vm/support.c": "5b5c93cd2ce20857e78816d75101ee083ec286a949f198b61fa61f1146a8d6db",
+      "python_vm/firmware.c": "4ea93994e81f85a4051278ee85e90c7923ed0e2ef1fe9e341c913b876ba3b7fc",
+      "python_vm/start.S": "12dfd61367c18ee3723e354698bd39efddc8f7031392d13b33ad78ce00dab1b6",
+      "python_vm/link.ld": "29d7275699f1c23be1f6b8895e9376e3088da25fde4975eb0acae3459b130ef3"
+    }
+  },
+  "artifact_sha256": {
+    "results.json": "fe3cf770d796ce1626b8cb484bab6445cf748986d5d9eb7cb5ffb0530c63043d",
+    "trace.verification.json": "7422d07858627d8664107176f14767e3a0aaa7f730675dbacfe2a1b0b85fb431",
+    "state.bin": "cd0bc2ada3fdb23902b66d2608d861b08cf15157ce6836b2674c026b02c95ea3",
+    "tool_1.py": "07943600406c63a4f4e5e2d1b6155f1c35031d31b092a0df97127ba3c7295d22"
+  }
+}
