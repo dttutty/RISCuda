@@ -25,9 +25,13 @@ __global__ void interpret(const uint32_t* code, int words, uint8_t* ram, int siz
     for (;;) {
         *result = rv32::resume_memory(code, words, budget, ram, size, machine, services);
         if (result->status != 6) break;
-        if (machine.r[17] != 0x200) { result->status = 7; break; }
-        machine.r[10] = rv32::big_mul(ram, size, machine.r[10], machine.r[11],
+        if (machine.r[17] == 0x200)
+            machine.r[10] = rv32::big_mul(ram, size, machine.r[10], machine.r[11],
                                       machine.r[12], machine.r[13], machine.r[14]);
+        else if (machine.r[17] == 0x201)
+            machine.r[10] = rv32::decimal_row(ram, size, machine.r[10], machine.r[11],
+                                              machine.r[12], machine.r[13]);
+        else { result->status = 7; break; }
         ++*calls;
     }
 }

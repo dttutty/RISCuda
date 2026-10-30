@@ -57,7 +57,8 @@ class GuestExecutionTests(unittest.TestCase):
     def test_functions_containers_loops_and_exceptions(self):
         self.mp("def f(n):\n    return sum(i*i for i in range(n))\n"
                 "class Box:\n    def __init__(self, value):\n        self.value=value\n"
-                "d = {'answer': f(20)}\nprint(Box(d['answer']).value)\n"
+                "    def __add__(self, other):\n        return Box(self.value+other.value)\n"
+                "d = {'answer': f(20)}\nprint((Box(d['answer'])+Box(0)).value)\n"
                 "try:\n    1//0\nexcept ZeroDivisionError:\n    print('caught')\n", "2470\ncaught\n")
 
     def test_factorial_and_power(self):
