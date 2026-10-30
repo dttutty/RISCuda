@@ -209,3 +209,20 @@ covers arithmetic/division edge cases, branches/calls, memory traps, CPU/GPU
 assembler parity, Python control flow/errors/limits and native yield/resume.
 See [VALIDATION.md](VALIDATION.md) for the recorded standalone validation and
 [PROVENANCE.json](PROVENANCE.json) for extraction origins and source hashes.
+
+## Citation
+
+If you use RISCV_ON_CUDA in your work, please cite:
+
+```bibtex
+@software{zhao2026riscv_on_cuda,
+  author  = {Zhao, Lei and Lee, Chul-Ho},
+  title   = {{RISCV_ON_CUDA}: a {RISC-V} core and {Python} interpreter on {CUDA}},
+  year    = {2026},
+  version = {0.1.0},
+  url     = {https://github.com/dttutty/RISCV_ON_CUDA}
+}
+```
+
+The citation is also available as [BibTeX](CITATION.bib) and
+[Citation File Format](CITATION.cff) for GitHub's **Cite this repository** feature.

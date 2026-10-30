@@ -201,3 +201,20 @@ CI 无需 GPU，会运行 CPU 汇编、构建和资源检查。
 CPU/GPU 汇编器一致性、Python 控制流/错误/容量限制，以及原生服务暂停/恢复。
 独立验证记录见 [VALIDATION.md](VALIDATION.md)，
 提取来源和源文件哈希见 [PROVENANCE.json](PROVENANCE.json)。
+
+## 引用
+
+如果你在工作中使用了 RISCV_ON_CUDA，请引用：
+
+```bibtex
+@software{zhao2026riscv_on_cuda,
+  author  = {Zhao, Lei and Lee, Chul-Ho},
+  title   = {{RISCV_ON_CUDA}: a {RISC-V} core and {Python} interpreter on {CUDA}},
+  year    = {2026},
+  version = {0.1.0},
+  url     = {https://github.com/dttutty/RISCV_ON_CUDA}
+}
+```
+
+也可使用 [BibTeX 文件](CITATION.bib)，或通过 [CITATION.cff](CITATION.cff)
+使用 GitHub 的 **Cite this repository** 功能获取引用格式。

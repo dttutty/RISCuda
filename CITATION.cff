@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use RISCV_ON_CUDA, please cite it as below."
+type: software
+title: "RISCV_ON_CUDA: a RISC-V core and Python interpreter on CUDA"
+authors:
+  - family-names: Zhao
+    given-names: Lei
+  - family-names: Lee
+    given-names: Chul-Ho
+version: 0.1.0
+date-released: 2026-10-30
+url: "https://github.com/dttutty/RISCV_ON_CUDA"
+repository-code: "https://github.com/dttutty/RISCV_ON_CUDA"
