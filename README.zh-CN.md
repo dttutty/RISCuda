@@ -1,5 +1,10 @@
 # RISCuda
 
+Qwen → 原生 C 计算器 → Qwen 现在也支持 **GPU 自主循环**：CPU 启动一次 CUDA
+Graph 后，调用检测、参数收集、RISC-V 执行、结果 token 回填和后续生成均由
+GPU 推进。CPU 仍负责初始化、提交请求和最终取回结果。
+详见[实现与复现说明](docs/autonomous-calc.md)。
+
 ### RISC-V 核心搬进 CUDA。完整 Python 程序，一个 kernel 执行。
 
 [English](README.md) | **简体中文**

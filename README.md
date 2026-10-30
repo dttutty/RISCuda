@@ -15,6 +15,7 @@ without CPU instruction stepping or host Python evaluation.
 | --- | --- | --- |
 | A complete RISC-V or integer Python program | **One CUDA kernel launch** | This standalone package |
 | Custom tool services with yield/resume | **One CUDA kernel**, including both service calls | [Device example](examples/native_resume.cu) |
+| Qwen → native C calculator → Qwen | **One host CUDA Graph launch**, including prefill | [GPU controller](docs/autonomous-calc.md) |
 | Qwen inference → Python execution → Qwen continuation | **One host CUDA Graph launch** | [Companion integration](VALIDATION.md#llm-integration-one-host-graph-launch) |
 
 The inference integration uses a graph containing multiple GPU kernels. Its

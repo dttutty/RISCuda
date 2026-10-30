@@ -33,6 +33,8 @@ class CompilerTests(unittest.TestCase):
         self.assertTrue((INCLUDE / "rv32_core.cuh").is_file())
         self.assertTrue((INCLUDE / "gpu_assembler.cuh").is_file())
         self.assertTrue((ROOT / "native/runtime.cu").is_file())
+        self.assertTrue((ROOT / "native/resident.cu").is_file())
+        self.assertTrue((INCLUDE / "resident.h").is_file())
 
     def test_machine_image_validation_before_cuda(self):
         for code in [b"", b"abc", bytes(1048580)]:
