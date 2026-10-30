@@ -1,0 +1,74 @@
+{
+  "implementation_commit": "fb9e34099332a8f5b19312a485e0a7b50173c9ce",
+  "host": "markov",
+  "gpu_index": 0,
+  "gpu_uuid": "GPU-23d8809e-ca5a-3d0c-7a0f-26ab756ae05a",
+  "gpu_name": "NVIDIA RTX A6000",
+  "upstream_micropython_revision": "78ff170de9e32c79db6e64d3e33d2bd60002bdcd",
+  "example": "examples/bigint.py",
+  "command": "CUDA_VISIBLE_DEVICES=0 GPU_RV32_CACHE=$PWD/.cache nsys profile --trace=cuda --sample=none --cpuctxsw=none --output=runs/micropython_bigint_committed_01 uv run --no-sync gpu-rv32 micropython examples/bigint.py --output runs/micropython_bigint_committed_01_artifacts",
+  "exit_status": 0,
+  "result": {
+    "value": 0,
+    "status": 0,
+    "status_name": "halt",
+    "steps": 567066,
+    "gpu_milliseconds": 220.61900329589844,
+    "request_seconds": 0.7068292172625661,
+    "kernel_launches": 1,
+    "bigint_calls": 97,
+    "stdout": "93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000\n115792089237316195423570985008687907853269984665640564039457584007913129639936\n",
+    "error": 0,
+    "error_name": "ok"
+  },
+  "independent_checks": {
+    "factorial100_and_power256_correct": true,
+    "cuda_kernel_instances": 1,
+    "host_cuda_kernel_launches": 1,
+    "host_device_copies_overlapping_kernel": 0,
+    "kernel_duration_ms": 219.651913
+  },
+  "regression": {
+    "methods_passed": 67,
+    "seconds": 14.849,
+    "command": "CUDA_VISIBLE_DEVICES=0 GPU_RV32_TESTS=1 GPU_RV32_CACHE=$PWD/.cache uv run python -m unittest discover -s tests -v",
+    "exit_status": 0
+  },
+  "installed_wheel": {
+    "installed_package": "/tmp/riscuda-installed-check/gpu_rv32/__init__.py",
+    "c": {
+      "value": 0,
+      "status": 0,
+      "status_name": "halt",
+      "steps": 391,
+      "gpu_milliseconds": 0.8303999900817871,
+      "request_seconds": 0.30293500097468495,
+      "kernel_launches": 1,
+      "bigint_calls": 0,
+      "stdout": "16\n",
+      "error": 0,
+      "error_name": "ok"
+    },
+    "micropython": {
+      "value": 0,
+      "status": 0,
+      "status_name": "halt",
+      "steps": 445818,
+      "gpu_milliseconds": 172.3665313720703,
+      "request_seconds": 0.176759485155344,
+      "kernel_launches": 1,
+      "bigint_calls": 97,
+      "stdout": "93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000\n115792089237316195423570985008687907853269984665640564039457584007913129639936\n",
+      "error": 0,
+      "error_name": "ok"
+    }
+  },
+  "artifacts": {
+    "runs/micropython_bigint_committed_01_artifacts/metadata.json": "4503f976b480bd678ed78667ced7621a77ec40cc363fadcddff36789f50eb6be",
+    "runs/micropython_bigint_committed_01_artifacts/results.json": "c7d8fa2b8fcc44865e5d5b2f754a933cbdbec6a62ec59f3d9a6992a590b93ae5",
+    "runs/micropython_bigint_committed_01_artifacts/interpreter.elf": "1f9f105aa4468bd97cf0aa046c11ad14d6363b76c3c6f5a90ddf00a573f9a5c7",
+    "runs/micropython_bigint_committed_01.nsys-rep": "560e3e146bd0e4e0930bee7f9b3fccebcc0b7af103dbb5dffcfdad7756103918",
+    "runs/c_micropython_tests_final.log": "4dfe5527a4461a51066425e6deb860da923443f7d9fd43e27c640a224f4c70fc"
+  },
+  "scope": "Standalone guest execution. Existing companion Qwen graph still uses mini_python. Native acceleration is bounded multiplication; other operations and larger products run as guest RV32IM."
+}
