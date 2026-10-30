@@ -1,5 +1,7 @@
 # Paired Qwenputer arithmetic benchmark
 
+**English** | [简体中文](README.zh-CN.md)
+
 The completed 200-problem local run scored **195/200 for each arm**. RISCuda
 reduced end-to-end latency by **15.92%** on the 194 common correctly completed
 requests (problem-bootstrap 95% interval 14.15%–17.68%). Including failed and

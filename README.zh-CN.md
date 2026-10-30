@@ -15,8 +15,8 @@ RV32IM 机器码和完整的整数 Python 程序：解析、分支、循环、�
 | --- | --- | --- |
 | 一段完整的 RISC-V 或整数 Python 程序 | **一次 CUDA kernel 调用** | 当前独立库 |
 | 包含暂停/恢复的自定义工具服务 | **一个 CUDA kernel**，包含两次服务调用 | [设备端示例](examples/native_resume.cu) |
-| Qwen → 原生 C 计算器 → Qwen | **一次主机 CUDA Graph 启动**，包含预填充 | [GPU 控制器](docs/autonomous-calc.md) |
-| Qwen 推理 → Python 执行 → Qwen 继续推理 | **一次主机 CUDA Graph 启动** | [配套推理原型](VALIDATION.md#llm-integration-one-host-graph-launch) |
+| Qwen → 原生 C 计算器 → Qwen | **一次主机 CUDA Graph 启动**，包含预填充 | [GPU 控制器](docs/autonomous-calc.zh-CN.md) |
+| Qwen 推理 → Python 执行 → Qwen 继续推理 | **一次主机 CUDA Graph 启动** | [配套推理原型](VALIDATION.zh-CN.md#llm-集成一次主机执行图启动) |
 
 推理集成的执行图内部包含多个 GPU kernel。一次主机启动覆盖提示词预填充、
 生成、Python 工具执行、结果反馈，直到最终答案。
@@ -83,7 +83,7 @@ flowchart LR
 主机与设备之间的数据拷贝也为零**。GPU 执行图耗时 8.225 秒，包含提示词预填充。
 
 这是单独的模型集成，其 CUDA 执行图内部包含多个 kernel。
-验证范围和来源见[验证记录](VALIDATION.md#llm-integration-one-host-graph-launch)
+验证范围和来源见[验证记录](VALIDATION.zh-CN.md#llm-集成一次主机执行图启动)
 与[轨迹摘要](docs/evidence/qwen_python_single_launch.json)。
 独立库的单 kernel Python 执行路径，可以通过下文的命令行工具和 Python API 直接使用。
 
@@ -149,7 +149,7 @@ print(answer["stdout"], answer["bigint_calls"])
 当前整数移植版关闭浮点、原生代码生成、外部文件导入、网络和文件 I/O；
 它不是 CPython，也不是完整的桌面 Python 环境。
 固定版本、采用 MIT 许可证的上游源码已随包附带，详见
-[MicroPython 来源记录](src/gpu_rv32/vendor/micropython/PROVENANCE.md)。
+[MicroPython 来源记录](src/gpu_rv32/vendor/micropython/PROVENANCE.zh-CN.md)。
 构建除 Zig 外还需要 GNU make，无需在运行时下载源码。
 
 MicroPython 乘法会自动使用 **CUDA 大整数服务**，每个输入最多 4096 位，
@@ -244,10 +244,10 @@ CUDA_VISIBLE_DEVICES=0 /tmp/native_resume
 对齐 BF16 语言权重、提示词和计算器接口后，在双方答对并正常结束的
 194 道题上，RISCuda 端到端总耗时降低 **15.9%**。
 199/200 对的完整文字 token 一致，另一对仅停止位置不同。
-参见[完整结果与限制](VALIDATION.md#matched-200-problem-qwenputer-arithmetic-evaluation)
+参见[完整结果与限制](VALIDATION.zh-CN.md#对齐的-200-题-qwenputer-算术评测)
 及[200 道逐题对照数据](docs/evidence/qwenputer_arithmetic_200.csv)。
 
-[配对评测说明](benchmarks/README.md)使用作者公开的 5 组算术题，每组 40 题，
+[配对评测说明](benchmarks/README.zh-CN.md)使用作者公开的 5 组算术题，每组 40 题，
 对齐 BF16 语言权重、提示词、greedy 解码和关闭 thinking 的设置。
 默认 C 后端执行作者的同一份计算器源码，把十进制大整数行操作接到 CUDA
 ECALL。这个对照保留两边的 CPU 解码循环，用于比较执行引擎，不代表 GPU
@@ -273,7 +273,7 @@ uv build
 CI 无需 GPU，会运行 CPU 汇编、构建和资源检查。
 手动启用的 GPU 测试覆盖算术/除法边界情况、分支/调用、内存异常、
 CPU/GPU 汇编器一致性、Python 控制流/错误/容量限制，以及原生服务暂停/恢复。
-独立验证记录见 [VALIDATION.md](VALIDATION.md)，
+独立验证记录见 [VALIDATION.zh-CN.md](VALIDATION.zh-CN.md)，
 提取来源和源文件哈希见 [PROVENANCE.json](PROVENANCE.json)。
 
 ## 引用

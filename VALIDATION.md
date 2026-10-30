@@ -1,5 +1,7 @@
 # Standalone validation
 
+**English** | [简体中文](VALIDATION.zh-CN.md)
+
 Validated on Linux x86_64, Python 3.12.13, Zig 0.14.1, CUDA 12.9 and an NVIDIA
 RTX A6000. The native target was `sm_80`. The fresh project environment had
 exactly two installed packages: `gpu-rv32-python` and `ziglang`. No PyTorch,

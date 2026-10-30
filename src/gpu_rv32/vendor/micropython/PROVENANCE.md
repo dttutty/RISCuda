@@ -1,3 +1,7 @@
+# MicroPython source provenance
+
+**English** | [简体中文](PROVENANCE.zh-CN.md)
+
 Vendored from https://github.com/micropython/micropython at v1.27.0,
 commit 78ff170de9e32c79db6e64d3e33d2bd60002bdcd (MIT; see LICENSE).
 
