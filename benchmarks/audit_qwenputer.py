@@ -51,6 +51,7 @@ def stats(rows):
             'total_seconds':sum(times),'mean_seconds':statistics.mean(times) if times else None,
             'median_seconds':statistics.median(times) if times else None,
             'calls':sum(p[arm]['calls'] for p in rows),
+            'calls_started':sum(p[arm]['calls_started'] for p in rows),
             'text_tokens':sum(p[arm]['text_tokens'] for p in rows),
             'chip_tokens':sum(p[arm]['chip_tokens'] for p in rows),
             'tool_seconds':sum(p[arm]['tool_seconds'] for p in rows)}
@@ -79,10 +80,13 @@ def main():
     base=meta['chip_token_offset']
     T=BR.Text(args.model/'tokenizer.json')
     firmware=args.qwenputer/'experimental/riscv/tests/data/rv/calc-bridge.elf'
+    reference_context={'firmware':digest(firmware),'tokenizer':digest(args.model/'tokenizer.json'),
+        **{name:digest(args.qwenputer/'experimental/riscv/chipformer/rv'/name)
+           for name in ('ref.py','bridge.py','spec.py','elf.py')}}
     auditor_hash=digest(Path(__file__))
     audit_path=args.run/'independent_verification.json'
     prior=json.loads(audit_path.read_text()) if audit_path.exists() else {}
-    cache=prior.get('cases',{}) if prior.get('auditor_sha256')==auditor_hash else {}
+    cache=prior.get('cases',{}) if prior.get('auditor_sha256')==auditor_hash and prior.get('reference_context')==reference_context else {}
     cases={}
     rows=[]
     raw={}
@@ -99,6 +103,12 @@ def main():
             assert digest(ROOT/name)==expected_hash,('changed source',name)
         canonical=json.loads((directory/'all_problems.json').read_text())
         selected=json.loads((directory/'problems.json').read_text())
+        assert digest(directory/'all_problems.json')==metadata['all_problems_sha256']
+        assert digest(directory/'problems.json')==metadata['problem_sha256']
+        shard_i,shard_k=map(int,metadata['shard'].split('/'))
+        assert selected==canonical[shard_i::shard_k]
+        build=json.loads((directory/'guest_build.json').read_text())
+        assert digest(directory/'guest.elf')==build['elf_sha256']
         AB.DATA=ROOT/'runs/qwenputer_math_data'
         expected=[]
         for dataset in dict.fromkeys(p['dataset'] for p in canonical):
@@ -140,6 +150,7 @@ def main():
                 print(key,trace,flush=True)
             assert trace['ok'],(key,trace)
             cases[key]={'raw_sha256':fingerprint,'reference_trace':trace}
+            row['calls_started']=sum(t==T.TCC for t in generation['tokens'])
             raw[key]=generation
             rows.append(row)
     assert len(hashes)==1,'shards did not use identical canonical problems'
@@ -151,11 +162,16 @@ def main():
         key=p['riscuda']['id']
         a,b=raw['riscuda:'+key],raw['qwenputer:'+key]
         assert a['prompt_ids']==b['prompt_ids']
-        equality.append({'id':key,'text_tokens_identical':a['tokens']==[t for t in b['tokens'] if t<base],
+        bt=[t for t in b['tokens'] if t<base]
+        n=min(len(a['tokens']),len(bt))
+        equality.append({'id':key,'text_tokens_identical':a['tokens']==bt,
+                         'shared_prefix_identical':a['tokens'][:n]==bt[:n],
                          'tool_responses_identical':p['riscuda']['responses']==p['qwenputer']['responses']})
     output={'audited_at':datetime.now(timezone.utc).isoformat(),'auditor_sha256':auditor_hash,
+        'reference_context':reference_context,
         'complete':bool(complete and len(rows)==400),'records':len(rows),'paired_problems':len(pairs),
         'cases':cases,'text_identical_pairs':sum(v['text_tokens_identical'] for v in equality),
+        'shared_prefix_identical_pairs':sum(v['shared_prefix_identical'] for v in equality),
         'response_identical_pairs':sum(v['tool_responses_identical'] for v in equality),
         'pair_checks':equality,'overall':stats(pairs),'datasets':{name:stats([p for p in pairs if p['riscuda']['dataset']==name]) for name in sorted({r['dataset'] for r in rows})}}
     audit_path.write_text(json.dumps(output,ensure_ascii=False,indent=2)+'\n')
