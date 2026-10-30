@@ -1,0 +1,415 @@
+{
+  "audited_at": "2026-10-30T14:11:07.513563+00:00",
+  "complete": true,
+  "implementation_commit": "15a00d48d39cd9ab9810b76b10f3949721206a54",
+  "metadata": [
+    {
+      "started_at": "2026-10-30T14:05:58.253722+00:00",
+      "command": [
+        "examples/autonomous_qwen_calc.py",
+        "--host-control",
+        "--output",
+        "runs/autonomous_calc_15a00d4"
+      ],
+      "commit": "15a00d48d39cd9ab9810b76b10f3949721206a54",
+      "dirty": false,
+      "model": "/home/sqp17/Projects/GPU_bytecode/m5gp/examples/qwen_rv32/models/Qwen3.5-4B-Qwenputer",
+      "dtype": "bfloat16",
+      "thinking": false,
+      "batch_size": 1,
+      "cuda_visible_devices": "GPU-23d8809e-ca5a-3d0c-7a0f-26ab756ae05a",
+      "versions": {
+        "torch": "2.9.0+cu128",
+        "transformers": "5.21.1",
+        "triton": "3.5.0",
+        "ziglang": "0.14.1"
+      },
+      "upstream_commit": "ca13310e2f9f788d1dd3feeea8213c1b0c23913c",
+      "checkpoint_manifest": {
+        "model": "divagr1925/Qwen3.5-4B-Qwenputer",
+        "revision": "2d9068508f2b680badb7abcded96fdd107e9ba5d",
+        "path": "/home/sqp17/Projects/GPU_bytecode/m5gp/examples/qwen_rv32/models/Qwen3.5-4B-Qwenputer"
+      },
+      "checkpoint_metadata_sha256": {
+        "config.json": "2607afb30433fd36795bf427d6baf769bd6585efed3e5f93ff83303b47806aff",
+        "chipformer.json": "e62bc08b357b900ad84d007034ce4738985a7db1908994a4c85cf2a6657c576d",
+        "tokenizer.json": "e19093118788e378d474b0a7f6d7f7c321da1fabcc6fd5ef6c68c3c28cf79e66",
+        "model.safetensors.index.json": "d43da66a62e60b23a89bc16280417ab9a9eaeba0aeba2268573d53fabf11d0ba"
+      },
+      "reference_firmware_sha256": "b643ad61291a947fa6c7498de9170b1d4da062dc1f34810feba9c4eebdec862d",
+      "gpu_inventory": [
+        "0, GPU-23d8809e-ca5a-3d0c-7a0f-26ab756ae05a, NVIDIA RTX A6000",
+        "1, GPU-97fb460f-fd63-1b9b-ac30-094932dff246, NVIDIA RTX A6000"
+      ],
+      "source_sha256": {
+        "examples/autonomous_qwen_calc.py": "cb8b6d3ae24d4986994ee0c62cda79922d830ab8eb612a4b8afaecdcc81b0f52",
+        "src/gpu_rv32/resident.py": "e567af3d7fe9651e560bab86f674c8e7ca60e37854c9d7e5e56f9ea8b5599030",
+        "src/gpu_rv32/native/resident.cu": "50081ef66c9627c806ed45fd6e32e3387ff8d737a04d93a1212d3683be3fac14",
+        "src/gpu_rv32/native/include/resident.h": "1560dc0af3bae09d5f6eea36af11bbd4bcb617b791b03c7b3384fdb13d386c50",
+        "src/gpu_rv32/native/include/rv32_core.cuh": "26464fc79011e745e6089c2d1c75007d14027b55260e492eb49af3b7c401f7d6",
+        "src/gpu_rv32/native/include/bigint.cuh": "0f364c60928f00f5401b7b4a588ad1ca896cca938a65cbefa8a9879077cb4b2a",
+        "benchmarks/compare_qwenputer.py": "bb18d69f9eaf6a158f39f3d3aa11a4b435c05ab59a4e59e4bf893670e74a98d6"
+      }
+    },
+    {
+      "started_at": "2026-10-30T14:10:02.059799+00:00",
+      "command": [
+        "examples/autonomous_qwen_calc.py",
+        "--case",
+        "chain",
+        "--profile",
+        "--output",
+        "runs/autonomous_calc_profile_data_65464b2"
+      ],
+      "commit": "65464b21d866109f3ceb512b2305ccd4a408ece8",
+      "dirty": false,
+      "model": "/home/sqp17/Projects/GPU_bytecode/m5gp/examples/qwen_rv32/models/Qwen3.5-4B-Qwenputer",
+      "dtype": "bfloat16",
+      "thinking": false,
+      "batch_size": 1,
+      "cuda_visible_devices": "GPU-97fb460f-fd63-1b9b-ac30-094932dff246",
+      "versions": {
+        "torch": "2.9.0+cu128",
+        "transformers": "5.21.1",
+        "triton": "3.5.0",
+        "ziglang": "0.14.1"
+      },
+      "upstream_commit": "ca13310e2f9f788d1dd3feeea8213c1b0c23913c",
+      "checkpoint_manifest": {
+        "model": "divagr1925/Qwen3.5-4B-Qwenputer",
+        "revision": "2d9068508f2b680badb7abcded96fdd107e9ba5d",
+        "path": "/home/sqp17/Projects/GPU_bytecode/m5gp/examples/qwen_rv32/models/Qwen3.5-4B-Qwenputer"
+      },
+      "checkpoint_metadata_sha256": {
+        "config.json": "2607afb30433fd36795bf427d6baf769bd6585efed3e5f93ff83303b47806aff",
+        "chipformer.json": "e62bc08b357b900ad84d007034ce4738985a7db1908994a4c85cf2a6657c576d",
+        "tokenizer.json": "e19093118788e378d474b0a7f6d7f7c321da1fabcc6fd5ef6c68c3c28cf79e66",
+        "model.safetensors.index.json": "d43da66a62e60b23a89bc16280417ab9a9eaeba0aeba2268573d53fabf11d0ba"
+      },
+      "reference_firmware_sha256": "b643ad61291a947fa6c7498de9170b1d4da062dc1f34810feba9c4eebdec862d",
+      "gpu_inventory": [
+        "0, GPU-23d8809e-ca5a-3d0c-7a0f-26ab756ae05a, NVIDIA RTX A6000",
+        "1, GPU-97fb460f-fd63-1b9b-ac30-094932dff246, NVIDIA RTX A6000"
+      ],
+      "source_sha256": {
+        "examples/autonomous_qwen_calc.py": "cb8b6d3ae24d4986994ee0c62cda79922d830ab8eb612a4b8afaecdcc81b0f52",
+        "src/gpu_rv32/resident.py": "e567af3d7fe9651e560bab86f674c8e7ca60e37854c9d7e5e56f9ea8b5599030",
+        "src/gpu_rv32/native/resident.cu": "50081ef66c9627c806ed45fd6e32e3387ff8d737a04d93a1212d3683be3fac14",
+        "src/gpu_rv32/native/include/resident.h": "1560dc0af3bae09d5f6eea36af11bbd4bcb617b791b03c7b3384fdb13d386c50",
+        "src/gpu_rv32/native/include/rv32_core.cuh": "26464fc79011e745e6089c2d1c75007d14027b55260e492eb49af3b7c401f7d6",
+        "src/gpu_rv32/native/include/bigint.cuh": "0f364c60928f00f5401b7b4a588ad1ca896cca938a65cbefa8a9879077cb4b2a",
+        "benchmarks/compare_qwenputer.py": "bb18d69f9eaf6a158f39f3d3aa11a4b435c05ab59a4e59e4bf893670e74a98d6"
+      }
+    }
+  ],
+  "requests": [
+    {
+      "case": "big",
+      "arm": "gpu",
+      "seconds": 5.942991249263287,
+      "expected": "1219326311370217952237463801111263526900",
+      "generated": 157,
+      "injected": 52,
+      "total": 209,
+      "forwards": 208,
+      "normal_eos": true,
+      "exact": true,
+      "host_graph_launches": 1,
+      "tools": [
+        {
+          "expression": "12345678901234567890*98765432109876543210",
+          "output": "1219326311370217952237463801111263526900\n",
+          "status": 0,
+          "error": 0,
+          "steps": 1870,
+          "bigint_calls": 28,
+          "gather_error": 0,
+          "elapsed_ns": 804096,
+          "reference": "1219326311370217952237463801111263526900\n",
+          "reference_equal": true
+        }
+      ],
+      "reference_trace": {
+        "ok": true,
+        "owned_checked": 52,
+        "calls": 1,
+        "ended_inside_tool": false
+      },
+      "raw_file": "runs/autonomous_calc_15a00d4/big_gpu.json",
+      "raw_sha256": "8210a7d0b359b9ed20e7fce8b3303e790094f0d541066f46f93fdece56204dfa",
+      "state_sha256": "a3b4ce345166983161d26ff229c3b269b09b7a6acc2d8ea9de8a1a5334df7986"
+    },
+    {
+      "case": "chain",
+      "arm": "gpu",
+      "seconds": 6.843102206941694,
+      "expected": "121932631112647614",
+      "generated": 180,
+      "injected": 60,
+      "total": 240,
+      "forwards": 239,
+      "normal_eos": true,
+      "exact": true,
+      "host_graph_launches": 1,
+      "tools": [
+        {
+          "expression": "123456789*987654321",
+          "output": "121932631112635269\n",
+          "status": 0,
+          "error": 0,
+          "steps": 1090,
+          "bigint_calls": 19,
+          "gather_error": 0,
+          "elapsed_ns": 517120,
+          "reference": "121932631112635269\n",
+          "reference_equal": true
+        },
+        {
+          "expression": "121932631112635269+12345",
+          "output": "121932631112647614\n",
+          "status": 0,
+          "error": 0,
+          "steps": 963,
+          "bigint_calls": 11,
+          "gather_error": 0,
+          "elapsed_ns": 466944,
+          "reference": "121932631112647614\n",
+          "reference_equal": true
+        }
+      ],
+      "reference_trace": {
+        "ok": true,
+        "owned_checked": 60,
+        "calls": 2,
+        "ended_inside_tool": false
+      },
+      "raw_file": "runs/autonomous_calc_15a00d4/chain_gpu.json",
+      "raw_sha256": "4d505c0f63036971a1e23450eebb761f3d11800e7c024ae18d9f1cbe4a7f86e7",
+      "state_sha256": "7e62add4c7689387e4f556c3297a2e1f6ecda0290a2b82c84d58ba7fd7d70a7b"
+    },
+    {
+      "case": "small",
+      "arm": "gpu",
+      "seconds": 1.9236046560108662,
+      "expected": "16",
+      "generated": 51,
+      "injected": 14,
+      "total": 65,
+      "forwards": 64,
+      "normal_eos": true,
+      "exact": true,
+      "host_graph_launches": 1,
+      "tools": [
+        {
+          "expression": "2*8",
+          "output": "16\n",
+          "status": 0,
+          "error": 0,
+          "steps": 514,
+          "bigint_calls": 11,
+          "gather_error": 0,
+          "elapsed_ns": 293888,
+          "reference": "16\n",
+          "reference_equal": true
+        }
+      ],
+      "reference_trace": {
+        "ok": true,
+        "owned_checked": 14,
+        "calls": 1,
+        "ended_inside_tool": false
+      },
+      "raw_file": "runs/autonomous_calc_15a00d4/small_gpu.json",
+      "raw_sha256": "e69136bef06f4c19d17ac54da34f6f59a32318e1e5ab1cd24069cbb699539412",
+      "state_sha256": "08693e69c82e24f6d94c4137d88a1250219a75a8db1b05fa30ccc6b918250773"
+    },
+    {
+      "case": "big",
+      "arm": "host",
+      "seconds": 5.9393331091851,
+      "expected": "1219326311370217952237463801111263526900",
+      "generated": 157,
+      "injected": 52,
+      "total": 209,
+      "forwards": 208,
+      "normal_eos": true,
+      "exact": true,
+      "host_graph_launches": 210,
+      "tools": [
+        {
+          "expression": "12345678901234567890*98765432109876543210",
+          "output": "1219326311370217952237463801111263526900\n",
+          "status": 0,
+          "error": 0,
+          "steps": 1870,
+          "bigint_calls": 28,
+          "gather_error": 0,
+          "elapsed_ns": 797600,
+          "reference": "1219326311370217952237463801111263526900\n",
+          "reference_equal": true
+        }
+      ],
+      "reference_trace": {
+        "ok": true,
+        "owned_checked": 52,
+        "calls": 1,
+        "ended_inside_tool": false
+      },
+      "raw_file": "runs/autonomous_calc_15a00d4/big_host.json",
+      "raw_sha256": "d01e1f098d93aaeec7edb7be8022d1a7795b8f68ca5e8cf983c4054bf445796c",
+      "state_sha256": "031a3b1c7ead2a889d0ec086f7c1bf16b75adb06bf8def1fc5541c378febc0cf"
+    },
+    {
+      "case": "chain",
+      "arm": "host",
+      "seconds": 6.8326383931562304,
+      "expected": "121932631112647614",
+      "generated": 180,
+      "injected": 60,
+      "total": 240,
+      "forwards": 239,
+      "normal_eos": true,
+      "exact": true,
+      "host_graph_launches": 241,
+      "tools": [
+        {
+          "expression": "123456789*987654321",
+          "output": "121932631112635269\n",
+          "status": 0,
+          "error": 0,
+          "steps": 1090,
+          "bigint_calls": 19,
+          "gather_error": 0,
+          "elapsed_ns": 513024,
+          "reference": "121932631112635269\n",
+          "reference_equal": true
+        },
+        {
+          "expression": "121932631112635269+12345",
+          "output": "121932631112647614\n",
+          "status": 0,
+          "error": 0,
+          "steps": 963,
+          "bigint_calls": 11,
+          "gather_error": 0,
+          "elapsed_ns": 464896,
+          "reference": "121932631112647614\n",
+          "reference_equal": true
+        }
+      ],
+      "reference_trace": {
+        "ok": true,
+        "owned_checked": 60,
+        "calls": 2,
+        "ended_inside_tool": false
+      },
+      "raw_file": "runs/autonomous_calc_15a00d4/chain_host.json",
+      "raw_sha256": "e14b170bafd38917b214ea6ec56f2737c4987f9a468cf8b6a16391427212ead4",
+      "state_sha256": "c6fa6be6dd25475d7e40f84fb8b7743cef038ab5e937ee743ece8298dc747002"
+    },
+    {
+      "case": "small",
+      "arm": "host",
+      "seconds": 1.925451478920877,
+      "expected": "16",
+      "generated": 51,
+      "injected": 14,
+      "total": 65,
+      "forwards": 64,
+      "normal_eos": true,
+      "exact": true,
+      "host_graph_launches": 66,
+      "tools": [
+        {
+          "expression": "2*8",
+          "output": "16\n",
+          "status": 0,
+          "error": 0,
+          "steps": 514,
+          "bigint_calls": 11,
+          "gather_error": 0,
+          "elapsed_ns": 293888,
+          "reference": "16\n",
+          "reference_equal": true
+        }
+      ],
+      "reference_trace": {
+        "ok": true,
+        "owned_checked": 14,
+        "calls": 1,
+        "ended_inside_tool": false
+      },
+      "raw_file": "runs/autonomous_calc_15a00d4/small_host.json",
+      "raw_sha256": "bc14d1e6fb0503a334d19cdbd3c8006eda80599156d865150e09614c3db49b7a",
+      "state_sha256": "ccbcbacd2434436dacb0ca7639702fd02fcb092c35fd1c24b4cdb439a344bdfe"
+    },
+    {
+      "case": "chain",
+      "arm": "gpu",
+      "seconds": 10.947674768045545,
+      "expected": "121932631112647614",
+      "generated": 180,
+      "injected": 60,
+      "total": 240,
+      "forwards": 239,
+      "normal_eos": true,
+      "exact": true,
+      "host_graph_launches": 1,
+      "tools": [
+        {
+          "expression": "123456789*987654321",
+          "output": "121932631112635269\n",
+          "status": 0,
+          "error": 0,
+          "steps": 1090,
+          "bigint_calls": 19,
+          "gather_error": 0,
+          "elapsed_ns": 502240,
+          "reference": "121932631112635269\n",
+          "reference_equal": true
+        },
+        {
+          "expression": "121932631112635269+12345",
+          "output": "121932631112647614\n",
+          "status": 0,
+          "error": 0,
+          "steps": 963,
+          "bigint_calls": 11,
+          "gather_error": 0,
+          "elapsed_ns": 450208,
+          "reference": "121932631112647614\n",
+          "reference_equal": true
+        }
+      ],
+      "reference_trace": {
+        "ok": true,
+        "owned_checked": 60,
+        "calls": 2,
+        "ended_inside_tool": false
+      },
+      "raw_file": "runs/autonomous_calc_profile_data_65464b2/chain_gpu.json",
+      "raw_sha256": "17b637f7390c0f907edd49acc3d4e200596e46707dec65df8e9012f5c114c54a",
+      "state_sha256": "69b3983b86ed5e7d890371c3b3c67fb4f96041efbe74e2349759cd7eb5937d09"
+    }
+  ],
+  "host_control_token_streams_equal": true,
+  "profiler": {
+    "sqlite_sha256": "77ba7a51aa1b1c4f1ceed1d42956dea3cf79e21aa9ac3c0de52d1a18c2af6293",
+    "runtime_api_calls": {
+      "cuProfilerStart": 1,
+      "cudaGraphLaunch_v10000": 1,
+      "cudaStreamSynchronize_v3020": 1
+    },
+    "copy_kinds": {},
+    "host_graph_launches": 1,
+    "device_graph_activities": 1,
+    "device_graph_duration_ns": 6751981288,
+    "validated_state_decode_steps": 239,
+    "validated_state_tool_calls": 2,
+    "no_host_token_or_tool_launches": true,
+    "no_host_memcpy_apis": true,
+    "granularity": "graph; internal kernels/copy nodes are not individually traced"
+  },
+  "timing_scope": "Prefill through EOS including tools/feedback; excludes load/build/capture/graph instantiation/cache reset/download/reference audit.",
+  "limitation": "Three correctness/parity cases, one timing per arm; no statistical speedup or 27B claim. Host control reuses identical captured GPU steps."
+}

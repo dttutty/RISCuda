@@ -46,6 +46,13 @@ GPU_RV32_CACHE="$PWD/.cache" CUDA_VISIBLE_DEVICES=0 \
   uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
   python examples/autonomous_qwen_calc.py --case chain --profile \
     --output runs/autonomous_profile_data
+
+nsys export --type sqlite --output runs/autonomous_profile.sqlite \
+  runs/autonomous_profile.nsys-rep
+uv run --project ../m5gp/examples/qwen_rv32 --group python-vm --no-sync \
+  python benchmarks/audit_autonomous.py --runs runs/autonomous \
+    --profile-run runs/autonomous_profile_data --sqlite runs/autonomous_profile.sqlite \
+    --output runs/autonomous_audit.json
 ```
 
 The model is the shared BF16 language stack from Qwen3.5-4B-Qwenputer,
