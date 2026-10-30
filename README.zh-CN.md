@@ -12,38 +12,45 @@
 - **真正的 MicroPython：** 支持函数、容器、异常和任意精度整数。
 - **GPU 内工具调用：** 可嵌入 Qwen 的 GPU 自主推理循环。
 
-## 试一下
+## 问 Qwen，让 GPU 执行 Python
 
-需要 Linux、Python 3.12+、CUDA 12.x 的 `nvcc`、GNU make 和 NVIDIA Ampere 或更新架构 GPU。
+下面的例子来自 Qwen3.8-27B 与轻量 Python 解释器的一次真实运行记录。
 
-```bash
-git clone https://github.com/dttutty/RISCuda.git
-cd RISCuda
-uv sync --locked
-```
+**1. 用户向 Qwen 提问：**
 
-选择空闲 GPU 后，通过 `uv run python` 运行：
+> 请用Python的while循环计算：i从1到137（含），如果i能被3整除，就把i的平方加入总和；否则从总和中减去2*i。总和初始为0，最后输出总和。
+
+**2. Qwen 生成 Python，作为工具调用的程序：**
 
 ```python
-from gpu_rv32 import compile_micropython, run_micropython
-
-image = compile_micropython("print(sum(i * i for i in range(1, 11)))\n")
-answer = run_micropython(image)
-assert answer["status"] == answer["error"] == 0
-print(answer["stdout"], end="")  # 385
+i = 1
+total = 0
+while i <= 137:
+    if i % 3 == 0:
+        total = total + i * i
+    else:
+        total = total - 2 * i
+    i = i + 1
+print(total)
 ```
 
-输出为 `385`。安装配置和命令行用法见[快速开始](docs/quickstart.zh-CN.md)。
+**3. RISCuda 的 GPU RISC-V 核心运行 Python 解释器**，执行上述程序，将结果 `269859` 反馈给 Qwen。
+
+**4. Qwen 根据工具结果回答用户：** 最终总和为 **269859**。
+
+这次记录中的循环只需**一次主机 CUDA Graph 启动**，生成、Python 执行和结果反馈均由 GPU 控制。该 Python 集成来自配套原型；当前仓库提供的 Qwen 控制器使用固定 C 计算器。详见[原始问题、生成代码与结果](docs/evidence/qwen_python_single_launch.json)和[验证范围](docs/results/qwen-python.zh-CN.md)。运行独立 Python 程序可从[快速开始](docs/quickstart.zh-CN.md)入手。
 
 ## 怎样执行
 
 ```mermaid
 flowchart LR
-    H[CPU：准备并提交] --> G[GPU：RISC-V 核心与客户机程序]
-    G --> R[CPU：收集结果]
+    U[用户问题] --> Q[Qwen]
+    Q -->|生成 Python| R[GPU 内的 RISC-V 与 Python]
+    R -->|工具结果| Q
+    Q -->|最终回答| A[用户]
 ```
 
-独立程序在**一个 CUDA kernel** 内执行，CPU 负责准备、提交和最终取回结果。Qwen 自主工具循环使用**一次主机 CUDA Graph 启动**，图内包含多个 kernel。当前 MicroPython 为整数版本；当前 Qwen 控制器调用固定 C 计算器。详见[执行架构](docs/architecture.zh-CN.md)与[推理集成](docs/autonomous-calc.zh-CN.md)。
+CPU 负责准备、提交请求和最终取回答案。CUDA Graph 内包含多个 kernel；独立 Python 调用则在**一个 CUDA kernel** 内执行。独立 MicroPython 移植版支持整数计算。详见[执行架构](docs/architecture.zh-CN.md)与 [Qwen/C 集成](docs/autonomous-calc.zh-CN.md)。
 
 ## 实验结果
 

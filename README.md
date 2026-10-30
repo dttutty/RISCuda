@@ -12,38 +12,45 @@
 - **Real MicroPython:** functions, containers, exceptions and arbitrary-size integers.
 - **GPU-side tools:** embed execution in a GPU-controlled Qwen inference loop.
 
-## Try it
+## Ask Qwen. Run Python on the GPU.
 
-Requires Linux, Python 3.12+, CUDA 12.x `nvcc`, GNU make and an NVIDIA Ampere-or-newer GPU.
+This example comes from a recorded Qwen3.8-27B run with our lightweight Python interpreter.
 
-```bash
-git clone https://github.com/dttutty/RISCuda.git
-cd RISCuda
-uv sync --locked
-```
+**1. Ask Qwen a question** (translated from the recorded Chinese prompt):
 
-With an available GPU selected, run using `uv run python`:
+> Use a Python while loop to calculate a total, starting at zero. For each integer i from 1 through 137, add i² if i is divisible by 3; otherwise subtract 2i. Output the final total.
+
+**2. Qwen generates Python for its tool call:**
 
 ```python
-from gpu_rv32 import compile_micropython, run_micropython
-
-image = compile_micropython("print(sum(i * i for i in range(1, 11)))\n")
-answer = run_micropython(image)
-assert answer["status"] == answer["error"] == 0
-print(answer["stdout"], end="")  # 385
+i = 1
+total = 0
+while i <= 137:
+    if i % 3 == 0:
+        total = total + i * i
+    else:
+        total = total - 2 * i
+    i = i + 1
+print(total)
 ```
 
-Output: `385`. See [quick start](docs/quickstart.md) for configuration and CLI usage.
+**3. RISCuda's GPU RISC-V core executes the Python interpreter** and feeds the result, `269859`, back to Qwen.
+
+**4. Qwen uses the tool result to answer the user:** the total is **269859**.
+
+The recorded loop runs under **one host CUDA Graph launch**, with generation, Python execution and feedback controlled on the GPU. This Python integration is a companion prototype; the controller shipped here uses a fixed C calculator. See the [recorded prompt, generated code and result](docs/evidence/qwen_python_single_launch.json) and [validation scope](docs/results/qwen-python.md). To run standalone Python programs, start with the [quick start](docs/quickstart.md).
 
 ## How execution works
 
 ```mermaid
 flowchart LR
-    H[CPU: prepare and submit] --> G[GPU: RISC-V core + guest program]
-    G --> R[CPU: collect result]
+    U[User question] --> Q[Qwen]
+    Q -->|Generated Python| R[RISC-V + Python on GPU]
+    R -->|Tool result| Q
+    Q -->|Final answer| A[User]
 ```
 
-Standalone programs execute in **one CUDA kernel**; the CPU prepares inputs, submits work and collects results. The autonomous Qwen tool loop uses **one host CUDA Graph launch**, containing multiple kernels. MicroPython is an integer-only port; the current Qwen controller calls a fixed C calculator. See [execution architecture](docs/architecture.md) and [inference integration](docs/autonomous-calc.md).
+The CPU prepares and submits the request, then collects the final answer. A CUDA Graph contains multiple kernels; a standalone Python invocation executes in **one CUDA kernel**. The standalone MicroPython port supports integer computation. See [execution architecture](docs/architecture.md) and the [Qwen/C integration](docs/autonomous-calc.md).
 
 ## Measured result
 
